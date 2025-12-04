@@ -103,8 +103,17 @@ export async function POST() {
             const urlParts = link.split("/")
             const slug = urlParts[urlParts.length - 2] || urlParts[urlParts.length - 1]
 
-            const h1Text = $detail("h1").first().text().trim()
-            const code = h1Text || slug
+            // WordPress h1 contains site title, not ring code
+            // Slug format is "anillo-XXXX" so we can construct the code
+            let code = slug
+              .split("-")
+              .map((part, index) => (index === 0 ? part.charAt(0).toUpperCase() + part.slice(1) : part))
+              .join(" ")
+
+            // If slug is "anillo-0122" → code becomes "Anillo 0122"
+            if (!code.toLowerCase().includes("anillo")) {
+              code = `Anillo ${code}`
+            }
 
             const tableText = $detail("table, .product-details, .entry-content").text()
             const textContent = $detail(".entry-content, article").text()

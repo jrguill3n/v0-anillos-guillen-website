@@ -74,21 +74,27 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
     notFound()
   }
 
+  const safeCode = ring.code && ring.code !== "Anillos Guillén" ? ring.code : `Anillo ${slug.split("-").pop()}`
+  const safeName = ring.name && ring.name !== "Anillos Guillén" ? ring.name : safeCode
+  const safePrice = ring.price && !isNaN(Number(ring.price)) ? Number(ring.price) : 0
+  const safeDiamondPoints =
+    ring.diamond_points && !isNaN(Number(ring.diamond_points)) ? Number(ring.diamond_points) : null
+
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anillosguillen.com"
   const pageUrl = `${baseUrl}/catalogo/${ring.slug}`
   const whatsappPhone = "5217441234567"
 
-  const diamondInfo = ring.diamond_points
-    ? `${ring.diamond_points} puntos${ring.diamond_clarity ? `, ${ring.diamond_clarity}` : ""}${ring.diamond_color ? `, ${ring.diamond_color}` : ""}`
+  const diamondInfo = safeDiamondPoints
+    ? `${safeDiamondPoints} puntos${ring.diamond_clarity ? `, ${ring.diamond_clarity}` : ""}${ring.diamond_color ? `, ${ring.diamond_color}` : ""}`
     : "diamante"
   const metalInfo = ring.metal_color && ring.metal_karat ? `${ring.metal_color} ${ring.metal_karat}` : "oro"
 
   const whatsappMessage = encodeURIComponent(
-    `Hola, me interesa este anillo de compromiso: ${ring.code}.\n\n` +
+    `Hola, me interesa este anillo de compromiso: ${safeCode}.\n\n` +
       `Detalles:\n` +
       `• Diamante: ${diamondInfo}\n` +
       `• Oro: ${metalInfo}\n` +
-      `• Precio: $${ring.price?.toLocaleString("es-MX")} MXN\n\n` +
+      `• Precio: $${safePrice.toLocaleString("es-MX")} MXN\n\n` +
       `¿Me puede dar más información y opciones de diamante?\n\n` +
       `Envié la consulta desde su sitio web: ${pageUrl}`,
   )
@@ -96,17 +102,17 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: `${ring.code} - Anillo de compromiso`,
+    name: `${safeCode} - Anillo de compromiso`,
     description: ring.description || "Hermoso anillo de compromiso",
     image: ring.image_url || `${baseUrl}/placeholder.svg`,
     brand: {
       "@type": "Brand",
       name: "Anillos Guillén",
     },
-    sku: ring.code,
+    sku: safeCode,
     offers: {
       "@type": "Offer",
-      price: ring.price,
+      price: safePrice,
       priceCurrency: "MXN",
       availability: ring.is_active ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       seller: {
@@ -118,10 +124,10 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
     },
     material: `${ring.metal_type || "oro"} ${ring.metal_color || ""} ${ring.metal_karat || ""}`.trim(),
     additionalProperty: [
-      ring.diamond_points && {
+      safeDiamondPoints && {
         "@type": "PropertyValue",
         name: "Diamante",
-        value: `${ring.diamond_points} puntos`,
+        value: `${safeDiamondPoints} puntos`,
       },
       ring.diamond_clarity && {
         "@type": "PropertyValue",
@@ -161,7 +167,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
             <div className="overflow-hidden rounded-lg bg-secondary relative aspect-square">
               <Image
                 src={ring.image_url || "/placeholder.svg?height=1200&width=1200"}
-                alt={`${ring.code} - ${ring.name || ring.code}`}
+                alt={`${safeCode} - ${safeName}`}
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
@@ -170,18 +176,16 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
             </div>
 
             <div className="flex flex-col">
-              <h1 className="mb-2 font-serif text-4xl font-bold tracking-tight md:text-5xl">{ring.code}</h1>
-              {ring.name && ring.name !== ring.code && (
-                <p className="mb-6 text-lg text-muted-foreground">{ring.name}</p>
-              )}
+              <h1 className="mb-2 font-serif text-4xl font-bold tracking-tight md:text-5xl">{safeCode}</h1>
+              {safeName && safeName !== safeCode && <p className="mb-6 text-lg text-muted-foreground">{safeName}</p>}
 
-              <p className="mb-6 text-3xl font-semibold text-accent">${ring.price?.toLocaleString("es-MX")} MXN</p>
+              <p className="mb-6 text-3xl font-semibold text-accent">${safePrice.toLocaleString("es-MX")} MXN</p>
 
               <div className="mb-6 space-y-3 border-y border-border py-6">
-                {ring.diamond_points && (
+                {safeDiamondPoints && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Diamante:</span>
-                    <span className="font-medium">{ring.diamond_points} puntos</span>
+                    <span className="font-medium">{safeDiamondPoints} puntos</span>
                   </div>
                 )}
                 {ring.diamond_clarity && (

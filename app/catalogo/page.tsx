@@ -63,6 +63,11 @@ export default async function CatalogoPage() {
     console.error("[v0] Error fetching rings:", error)
   }
 
+  const validRings =
+    rings?.filter((ring) => {
+      return ring.slug && ring.code && ring.image_url && ring.price != null
+    }) || []
+
   return (
     <>
       <Navigation />
@@ -78,13 +83,13 @@ export default async function CatalogoPage() {
             </div>
 
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {rings?.map((ring) => (
+              {validRings.map((ring) => (
                 <Link key={ring.id} href={`/catalogo/${ring.slug}`}>
                   <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-accent/20">
                     <div className="aspect-square overflow-hidden bg-secondary relative">
                       <Image
                         src={ring.image_url || "/placeholder.svg?height=800&width=800"}
-                        alt={`${ring.code} - ${ring.name}`}
+                        alt={`${ring.code || "Anillo"} - ${ring.name || "Anillo de compromiso"}`}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -93,12 +98,12 @@ export default async function CatalogoPage() {
                     <CardContent className="p-6">
                       <h3 className="mb-1 text-sm font-medium text-muted-foreground">{ring.code}</h3>
                       <p className="mb-3 text-lg font-semibold text-foreground">
-                        ${ring.price?.toLocaleString("es-MX")} MXN
+                        ${(ring.price || 0).toLocaleString("es-MX")} MXN
                       </p>
                       <div className="space-y-1 text-sm text-muted-foreground">
-                        <p>Diamante: {ring.diamond_points} puntos</p>
+                        <p>Diamante: {ring.diamond_points || 0} puntos</p>
                         <p>
-                          Oro: {ring.metal_color} {ring.metal_karat}
+                          Oro: {ring.metal_color || "Amarillo"} {ring.metal_karat || "14k"}
                         </p>
                       </div>
                     </CardContent>
