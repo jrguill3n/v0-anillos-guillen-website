@@ -8,18 +8,8 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
 
+export const dynamic = "force-dynamic"
 export const revalidate = 3600 // Revalidate every hour
-
-export async function generateStaticParams() {
-  const supabase = await createClient()
-  const { data: rings } = await supabase.from("rings").select("code")
-
-  return (
-    rings?.map((ring) => ({
-      slug: ring.code,
-    })) || []
-  )
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
