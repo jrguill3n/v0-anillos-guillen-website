@@ -13,6 +13,14 @@ export const dynamic = "force-dynamic"
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const supabase = await createClient()
+
+  if (!supabase) {
+    return {
+      title: "Anillo no disponible",
+      description: "El anillo que buscas no está disponible en este momento.",
+    }
+  }
+
   const { data: ring } = await supabase.from("rings").select("*").eq("slug", slug).single()
 
   if (!ring) {
@@ -68,6 +76,10 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
 
   try {
     const supabase = await createClient()
+
+    if (!supabase) {
+      notFound()
+    }
 
     const { data: ring, error } = await supabase.from("rings").select("*").eq("slug", slug).single()
 

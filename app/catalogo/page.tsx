@@ -58,25 +58,29 @@ export default async function CatalogoPage() {
 
   try {
     const supabase = await createClient()
-    console.log("[v0] Supabase client created for catalog")
 
-    const result = await supabase
-      .from("rings")
-      .select("*")
-      .eq("is_active", true)
-      .order("order_index", { ascending: true })
-      .order("created_at", { ascending: false })
-
-    console.log("[v0] Rings query result:", { count: result.data?.length || 0, error: result.error?.message })
-
-    if (result.error) {
-      console.error("[v0] Error fetching rings:", result.error)
-      error = result.error
+    if (!supabase) {
+      console.error("[v0] Supabase client could not be created")
+      error = new Error("Database connection unavailable")
     } else {
-      rings = result.data || []
+      const result = await supabase
+        .from("rings")
+        .eq("is_active", true)
+        .order("order_index", { ascending: true })
+        .order("created_at", { ascending: false })
+        .select("*")
+
+      console.log("[v0] Rings query result:", { count: result.data?.length || 0, error: result.error?.message })
+
+      if (result.error) {
+        console.error("[v0] Error fetching rings:", result.error)
+        error = result.error
+      } else {
+        rings = result.data || []
+      }
     }
   } catch (e) {
-    console.error("[v0] Failed to create Supabase client or fetch rings:", e)
+    console.error("[v0] Failed to fetch rings:", e)
     error = e
   }
 
