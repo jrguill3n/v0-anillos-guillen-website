@@ -130,14 +130,32 @@ export async function POST() {
 
             let image_url = "/solitaire-diamond-ring.png"
 
-            // Try multiple image selectors and attributes
-            const img = $detail(".wp-post-image, .product-image img, article img, .entry-content img").first()
-            const imgSrc =
-              img.attr("data-src") || img.attr("data-lazy-src") || img.attr("srcset")?.split(" ")[0] || img.attr("src")
+            const imgElement = $detail(".wp-post-image, .product-image img, article img, .entry-content img").first()
+            const parentLink = imgElement.parent("a")
+
+            let imgSrc = null
+
+            // Try parent link href first (WordPress often links to full size image)
+            if (parentLink.length && parentLink.attr("href")) {
+              const linkHref = parentLink.attr("href")
+              if (linkHref && linkHref.startsWith("http") && /\.(jpg|jpeg|png|webp)$/i.test(linkHref)) {
+                imgSrc = linkHref
+                sendLog(controller, `  Found image in parent link: ${imgSrc}`)
+              }
+            }
+
+            // Fallback to img attributes
+            if (!imgSrc) {
+              imgSrc =
+                imgElement.attr("data-src") ||
+                imgElement.attr("data-lazy-src") ||
+                imgElement.attr("data-large_image") ||
+                imgElement.attr("srcset")?.split(" ")[0] ||
+                imgElement.attr("src")
+            }
 
             if (imgSrc && !imgSrc.includes("data:image") && imgSrc.startsWith("http")) {
-              sendLog(controller, `  Found image: ${imgSrc.substring(0, 50)}...`)
-              sendLog(controller, `  Downloading image...`)
+              sendLog(controller, `  Downloading image: ${imgSrc.substring(0, 60)}...`)
               const imageBuffer = await downloadImage(imgSrc)
               if (imageBuffer) {
                 sendLog(controller, `  Uploading to Supabase Storage...`)
