@@ -23,40 +23,43 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     }
   }
 
+  const metalInfo = ring.metal_color && ring.metal_karat ? `${ring.metal_color} ${ring.metal_karat}` : "oro"
+  const diamondInfo = ring.diamond_points ? `${ring.diamond_points} puntos` : "diamante"
+
   return {
-    title: `${ring.code} - Anillo de compromiso en ${ring.metal_color} ${ring.metal_karat} con diamante de ${ring.diamond_points} puntos`,
-    description: `${ring.description} Precio: $${ring.price?.toLocaleString("es-MX")} MXN. Disponible en Anillos Guillén Acapulco.`,
+    title: `${ring.code} - Anillo de compromiso en ${metalInfo} con diamante de ${diamondInfo}`,
+    description: `${ring.description || "Hermoso anillo de compromiso"} Precio: $${ring.price?.toLocaleString("es-MX")} MXN. Disponible en Anillos Guillén Acapulco.`,
     keywords: [
       ring.code,
-      ring.name,
-      ring.metal_type,
-      ring.metal_color,
+      ring.name || ring.code,
+      ring.metal_type || "oro",
+      ring.metal_color || "",
       "anillo de compromiso",
       "diamante certificado",
       "Acapulco",
-    ],
+    ].filter(Boolean),
     alternates: {
       canonical: `/catalogo/${slug}`,
     },
     openGraph: {
-      title: `${ring.code} - ${ring.metal_color} ${ring.metal_karat}`,
-      description: ring.description,
+      title: `${ring.code} - ${metalInfo}`,
+      description: ring.description || "Hermoso anillo de compromiso",
       url: `/catalogo/${slug}`,
       type: "product",
       images: [
         {
-          url: ring.image_url,
+          url: ring.image_url || "/placeholder.svg",
           width: 1200,
           height: 630,
-          alt: `${ring.code} - Anillo de compromiso en ${ring.metal_color} ${ring.metal_karat}`,
+          alt: `${ring.code} - Anillo de compromiso en ${metalInfo}`,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${ring.code} - ${ring.metal_color} ${ring.metal_karat}`,
-      description: ring.description,
-      images: [ring.image_url],
+      title: `${ring.code} - ${metalInfo}`,
+      description: ring.description || "Hermoso anillo de compromiso",
+      images: [ring.image_url || "/placeholder.svg"],
     },
   }
 }
@@ -75,11 +78,16 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
   const pageUrl = `${baseUrl}/catalogo/${ring.slug}`
   const whatsappPhone = "5217441234567"
 
+  const diamondInfo = ring.diamond_points
+    ? `${ring.diamond_points} puntos${ring.diamond_clarity ? `, ${ring.diamond_clarity}` : ""}${ring.diamond_color ? `, ${ring.diamond_color}` : ""}`
+    : "diamante"
+  const metalInfo = ring.metal_color && ring.metal_karat ? `${ring.metal_color} ${ring.metal_karat}` : "oro"
+
   const whatsappMessage = encodeURIComponent(
     `Hola, me interesa este anillo de compromiso: ${ring.code}.\n\n` +
       `Detalles:\n` +
-      `• Diamante: ${ring.diamond_points} puntos (${ring.diamond_clarity}, ${ring.diamond_color})\n` +
-      `• Oro: ${ring.metal_color} ${ring.metal_karat}\n` +
+      `• Diamante: ${diamondInfo}\n` +
+      `• Oro: ${metalInfo}\n` +
       `• Precio: $${ring.price?.toLocaleString("es-MX")} MXN\n\n` +
       `¿Me puede dar más información y opciones de diamante?\n\n` +
       `Envié la consulta desde su sitio web: ${pageUrl}`,
@@ -89,7 +97,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
     "@context": "https://schema.org",
     "@type": "Product",
     name: `${ring.code} - Anillo de compromiso`,
-    description: ring.description,
+    description: ring.description || "Hermoso anillo de compromiso",
     image: `https://anillosguillen.com${ring.image_url}`,
     brand: {
       "@type": "Brand",
@@ -108,29 +116,29 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
       priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
       itemCondition: "https://schema.org/NewCondition",
     },
-    material: `${ring.metal_type} ${ring.metal_color} ${ring.metal_karat}`,
+    material: `${ring.metal_type || "oro"} ${ring.metal_color || ""} ${ring.metal_karat || ""}`.trim(),
     additionalProperty: [
-      {
+      ring.diamond_points && {
         "@type": "PropertyValue",
         name: "Diamante",
         value: `${ring.diamond_points} puntos`,
       },
-      {
+      ring.diamond_clarity && {
         "@type": "PropertyValue",
         name: "Claridad",
         value: ring.diamond_clarity,
       },
-      {
+      ring.diamond_color && {
         "@type": "PropertyValue",
         name: "Color",
         value: ring.diamond_color,
       },
-      {
+      (ring.metal_color || ring.metal_karat) && {
         "@type": "PropertyValue",
         name: "Oro",
-        value: `${ring.metal_color} ${ring.metal_karat}`,
+        value: metalInfo,
       },
-    ],
+    ].filter(Boolean),
     category: "Anillos de compromiso",
   }
 
@@ -153,7 +161,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
             <div className="overflow-hidden rounded-lg bg-secondary relative aspect-square">
               <Image
                 src={ring.image_url || "/placeholder.svg?height=1200&width=1200"}
-                alt={`${ring.code} - ${ring.name}`}
+                alt={`${ring.code} - ${ring.name || ring.code}`}
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
@@ -163,35 +171,45 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
 
             <div className="flex flex-col">
               <h1 className="mb-2 font-serif text-4xl font-bold tracking-tight md:text-5xl">{ring.code}</h1>
-              <p className="mb-6 text-lg text-muted-foreground">{ring.name}</p>
+              {ring.name && ring.name !== ring.code && (
+                <p className="mb-6 text-lg text-muted-foreground">{ring.name}</p>
+              )}
 
               <p className="mb-6 text-3xl font-semibold text-accent">${ring.price?.toLocaleString("es-MX")} MXN</p>
 
               <div className="mb-6 space-y-3 border-y border-border py-6">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Diamante:</span>
-                  <span className="font-medium">{ring.diamond_points} puntos</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Claridad:</span>
-                  <span className="font-medium">{ring.diamond_clarity}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Color:</span>
-                  <span className="font-medium">{ring.diamond_color}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Oro:</span>
-                  <span className="font-medium">
-                    {ring.metal_color} {ring.metal_karat}
-                  </span>
-                </div>
+                {ring.diamond_points && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Diamante:</span>
+                    <span className="font-medium">{ring.diamond_points} puntos</span>
+                  </div>
+                )}
+                {ring.diamond_clarity && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Claridad:</span>
+                    <span className="font-medium">{ring.diamond_clarity}</span>
+                  </div>
+                )}
+                {ring.diamond_color && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Color:</span>
+                    <span className="font-medium">{ring.diamond_color}</span>
+                  </div>
+                )}
+                {(ring.metal_color || ring.metal_karat) && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Oro:</span>
+                    <span className="font-medium">{metalInfo}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="mb-8">
-                <h2 className="mb-3 font-serif text-xl font-semibold">Descripción</h2>
-                <p className="text-muted-foreground leading-relaxed">{ring.description}</p>
-              </div>
+              {ring.description && (
+                <div className="mb-8">
+                  <h2 className="mb-3 font-serif text-xl font-semibold">Descripción</h2>
+                  <p className="text-muted-foreground leading-relaxed">{ring.description}</p>
+                </div>
+              )}
 
               <Button asChild size="lg" className="mt-auto text-base">
                 <a
