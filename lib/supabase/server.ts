@@ -1,41 +1,21 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
-function createNoOpClient() {
-  return {
-    from: () => ({
-      select: () => ({
-        eq: () => ({ data: null, error: new Error("Supabase not configured") }),
-        single: () => ({ data: null, error: new Error("Supabase not configured") }),
-        data: [],
-        error: new Error("Supabase not configured"),
-      }),
-      insert: () => ({ data: null, error: new Error("Supabase not configured") }),
-      update: () => ({ data: null, error: new Error("Supabase not configured") }),
-      delete: () => ({ data: null, error: new Error("Supabase not configured") }),
-      upsert: () => ({ data: null, error: new Error("Supabase not configured") }),
-    }),
-    storage: {
-      from: () => ({
-        upload: () => ({ data: null, error: new Error("Supabase not configured") }),
-        getPublicUrl: () => ({ data: { publicUrl: "" } }),
-      }),
-    },
-  } as any
-}
-
 export async function createClient() {
   const cookieStore = await cookies()
 
   const supabaseUrl = process.env.SUPABASE_URL
-  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
+  const supabaseKey = process.env.SUPABASE_ANON_KEY
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn("[v0] Missing Supabase environment variables - using no-op client")
-    return createNoOpClient()
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error(
+      "Your project's URL and Key are required to create a Supabase client! " +
+        "Check your Supabase project's API settings to find these values " +
+        "https://supabase.com/dashboard/project/_/settings/api",
+    )
   }
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
