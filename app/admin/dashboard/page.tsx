@@ -5,7 +5,6 @@ import { logoutAdmin } from "../actions"
 import { Button } from "@/components/ui/button"
 import { RingsTable } from "@/components/admin/rings-table"
 import { RingFormDialog } from "@/components/admin/ring-form-dialog"
-import { Download } from "lucide-react"
 
 export default async function AdminDashboardPage() {
   const isAuthenticated = await isAdminAuthenticated()
@@ -30,12 +29,6 @@ export default async function AdminDashboardPage() {
             <p className="text-sm text-muted-foreground">Gestión de anillos</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button asChild variant="outline" size="sm" className="gap-2 bg-transparent">
-              <a href="/api/catalog/pdf" download>
-                <Download className="h-4 w-4" />
-                Descargar PDF
-              </a>
-            </Button>
             <form action={logoutAdmin}>
               <Button variant="outline" size="sm">
                 Cerrar sesión

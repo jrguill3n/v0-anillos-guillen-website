@@ -4,9 +4,7 @@ import type { Metadata } from "next"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
-import { Download } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Catálogo de Anillos de Compromiso",
@@ -76,14 +74,6 @@ export default async function CatalogoPage() {
                 Descubre nuestra colección de anillos de compromiso. Cada pieza es única y está elaborada con los más
                 altos estándares de calidad.
               </p>
-              <div className="mt-8">
-                <Button asChild variant="outline" size="lg" className="gap-2 bg-transparent">
-                  <a href="/api/catalog/pdf" download>
-                    <Download className="h-5 w-5" />
-                    Descargar catálogo en PDF
-                  </a>
-                </Button>
-              </div>
             </div>
 
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
