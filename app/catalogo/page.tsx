@@ -93,11 +93,11 @@ export default async function CatalogoPage() {
                       <h3 className="mb-3 font-serif text-xl font-semibold">{ring.name}</h3>
                       <div className="space-y-2 text-sm text-muted-foreground">
                         <p className="text-lg font-semibold text-foreground">
-                          ${ring.price_mxn?.toLocaleString("es-MX")} MXN
+                          ${ring.price?.toLocaleString("es-MX")} MXN
                         </p>
                         <p>{ring.diamond_points} puntos de diamante</p>
                         <p>
-                          {ring.gold_color} {ring.gold_karat}
+                          {ring.metal_color} {ring.metal_karat}
                         </p>
                       </div>
                     </CardContent>
