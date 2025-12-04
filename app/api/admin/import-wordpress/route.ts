@@ -128,8 +128,8 @@ export async function POST() {
             const goldKaratMatch = textContent.match(/(\d+)\s*k/i)
             const metal_karat = goldKaratMatch ? Number.parseInt(goldKaratMatch[1]) : null
 
-            // Get image URL
-            let image_url: string | null = null
+            // Get image URL with fallback to placeholder
+            let image_url = "/solitaire-diamond-ring.png"
             const imgSrc =
               $detail(".wp-post-image").attr("src") ||
               $detail(".product-image img").first().attr("src") ||
@@ -140,8 +140,18 @@ export async function POST() {
               const imageBuffer = await downloadImage(imgSrc)
               if (imageBuffer) {
                 sendLog(controller, `  Uploading to Supabase Storage...`)
-                image_url = await uploadImageToSupabase(supabase, imageBuffer, slug)
+                const uploadedUrl = await uploadImageToSupabase(supabase, imageBuffer, slug)
+                if (uploadedUrl) {
+                  image_url = uploadedUrl
+                  sendLog(controller, `  ✅ Image uploaded successfully`)
+                } else {
+                  sendLog(controller, `  ⚠️ Image upload failed, using placeholder`)
+                }
+              } else {
+                sendLog(controller, `  ⚠️ Image download failed, using placeholder`)
               }
+            } else {
+              sendLog(controller, `  ⚠️ No valid image found, using placeholder`)
             }
 
             // Insert/update ring
