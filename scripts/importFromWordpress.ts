@@ -18,6 +18,8 @@
 
 import { createClient } from "@supabase/supabase-js"
 import * as cheerio from "cheerio"
+import { fetch } from "node-fetch"
+import { Buffer } from "buffer"
 
 // Types
 interface RingData {
@@ -127,56 +129,173 @@ async function parseCatalogPage(): Promise<ParsedRing[]> {
   const $ = cheerio.load(html)
   const rings: ParsedRing[] = []
 
-  // Look for links within the main content area that contain "Anillo"
-  $(".entry-content a, article a").each((_, element) => {
-    const $link = $(element)
-    const href = $link.attr("href")
-    const text = $link.text()
+  // Try multiple common WooCommerce and WordPress product selectors
+  const productSelectors = [
+    ".products .product",
+    ".woocommerce-loop-product",
+    "ul.products li",
+    "article.product",
+    ".type-product",
+  ]
 
-    // Check if this looks like a ring link
-    if (!href || !text.includes("Anillo")) return
+  let $products = $()
+  for (const selector of productSelectors) {
+    $products = $(selector)
+    if ($products.length > 0) {
+      console.log(`✅ Found ${$products.length} products using selector: ${selector}`)
+      break
+    }
+  }
 
-    // Skip if it's not a catalog link
-    if (!href.includes("/catalogo/")) return
+  if ($products.length === 0) {
+    console.warn("⚠️  No products found with standard selectors, trying link-based approach...")
+    // Fallback to the original link-based approach
+    $(".entry-content a, article a").each((_, element) => {
+      const $link = $(element)
+      const href = $link.attr("href")
+      const text = $link.text()
 
-    // Parse the ring text
-    const parsed = parseRingText(text)
-    if (!parsed || !parsed.code) return
+      if (!href || !text.includes("Anillo") || !href.includes("/catalogo/")) return
 
-    let slug = ""
-    if (href.includes("/catalogo/")) {
-      // Extract the slug part after /catalogo/
+      const parsed = parseRingText(text)
+      if (!parsed || !parsed.code) return
+
       const urlMatch = href.match(/\/catalogo\/([^/?#]+)/i)
-      slug = urlMatch ? urlMatch[1].replace(/\/$/, "") : ""
-    }
+      const slug = urlMatch ? urlMatch[1].replace(/\/$/, "") : parsed.code.toLowerCase().replace(/\s+/g, "-")
+      const detailUrl = href.startsWith("http") ? href : `${BASE_URL}${href}`
 
-    // Fallback: generate slug from code if not found in URL
-    if (!slug) {
-      slug = parsed.code.toLowerCase().replace(/\s+/g, "-")
-    }
-
-    // Build full detail URL
-    const detailUrl = href.startsWith("http") ? href : `${BASE_URL}${href}`
-
-    rings.push({
-      code: parsed.code,
-      price: parsed.price || 0,
-      diamondPoints: parsed.diamondPoints || 0,
-      goldColor: parsed.goldColor || "Amarillo",
-      goldKarat: parsed.goldKarat || 14,
-      detailUrl,
-      slug,
+      rings.push({
+        code: parsed.code,
+        price: parsed.price || 0,
+        diamondPoints: parsed.diamondPoints || 0,
+        goldColor: parsed.goldColor || "Amarillo",
+        goldKarat: parsed.goldKarat || 14,
+        detailUrl,
+        slug,
+      })
     })
-  })
+  } else {
+    // Process each product card
+    $products.each((_, element) => {
+      const $product = $(element)
+
+      // Find the product link
+      const $link = $product.find("a").first()
+      const href = $link.attr("href")
+
+      if (!href) return
+
+      // Get all text content from the product card
+      const text = $product.text()
+
+      // Parse the ring text
+      const parsed = parseRingText(text)
+      if (!parsed || !parsed.code) return
+
+      // Extract slug from URL
+      let slug = ""
+      if (href.includes("/catalogo/")) {
+        const urlMatch = href.match(/\/catalogo\/([^/?#]+)/i)
+        slug = urlMatch ? urlMatch[1].replace(/\/$/, "") : ""
+      }
+
+      // Fallback: generate slug from code if not found in URL
+      if (!slug) {
+        slug = parsed.code.toLowerCase().replace(/\s+/g, "-")
+      }
+
+      // Build full detail URL
+      const detailUrl = href.startsWith("http") ? href : `${BASE_URL}${href}`
+
+      rings.push({
+        code: parsed.code,
+        price: parsed.price || 0,
+        diamondPoints: parsed.diamondPoints || 0,
+        goldColor: parsed.goldColor || "Amarillo",
+        goldKarat: parsed.goldKarat || 14,
+        detailUrl,
+        slug,
+      })
+    })
+  }
 
   console.log(`✅ Found ${rings.length} rings in catalog`)
+
+  if (rings.length === 0) {
+    console.log("\n⚠️  Debug: Dumping page structure...")
+    console.log(
+      "Classes found:",
+      $('[class*="product"]')
+        .map((_, el) => $(el).attr("class"))
+        .get()
+        .slice(0, 10),
+    )
+  }
+
   return rings
+}
+
+/**
+ * Download an image from a URL and return as a Buffer
+ */
+async function downloadImage(url: string): Promise<Buffer | null> {
+  try {
+    console.log(`  📥 Downloading image from ${url}`)
+    const response = await fetch(url)
+    if (!response.ok) {
+      console.warn(`  ⚠️  Failed to download image: ${response.status}`)
+      return null
+    }
+
+    const arrayBuffer = await response.arrayBuffer()
+    return Buffer.from(arrayBuffer)
+  } catch (error) {
+    console.warn(`  ⚠️  Error downloading image:`, error)
+    return null
+  }
+}
+
+/**
+ * Upload an image to Supabase Storage and return the public URL
+ */
+async function uploadImageToSupabase(imageBuffer: Buffer, slug: string): Promise<string | null> {
+  try {
+    // Generate unique filename
+    const fileExt = "jpg" // default to jpg
+    const fileName = `${slug}-${Date.now()}.${fileExt}`
+    const filePath = `rings/${fileName}`
+
+    console.log(`  📤 Uploading to Supabase Storage: ${filePath}`)
+
+    // Upload to Supabase Storage
+    const { error: uploadError } = await supabase.storage.from("ring-images").upload(filePath, imageBuffer, {
+      contentType: "image/jpeg",
+      cacheControl: "3600",
+      upsert: false,
+    })
+
+    if (uploadError) {
+      console.warn(`  ⚠️  Upload error: ${uploadError.message}`)
+      return null
+    }
+
+    // Get public URL
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("ring-images").getPublicUrl(filePath)
+
+    console.log(`  ✅ Image uploaded successfully`)
+    return publicUrl
+  } catch (error) {
+    console.warn(`  ⚠️  Error uploading to Supabase:`, error)
+    return null
+  }
 }
 
 /**
  * Fetch the detail page for a ring and extract the main product image
  */
-async function fetchRingImage(detailUrl: string): Promise<string> {
+async function fetchRingImage(detailUrl: string, slug: string): Promise<string> {
   try {
     const html = await fetchHTML(detailUrl)
     const $ = cheerio.load(html)
@@ -210,12 +329,25 @@ async function fetchRingImage(detailUrl: string): Promise<string> {
     }
 
     if (!imageUrl) {
-      console.warn(`⚠️  No image found for ${detailUrl}`)
+      console.warn(`  ⚠️  No image found for ${detailUrl}`)
+      return "/placeholder.svg?height=400&width=400"
     }
 
-    return imageUrl || "/placeholder.svg?height=400&width=400"
+    const imageBuffer = await downloadImage(imageUrl)
+    if (!imageBuffer) {
+      console.warn(`  ⚠️  Could not download image, using placeholder`)
+      return "/placeholder.svg?height=400&width=400"
+    }
+
+    const supabaseUrl = await uploadImageToSupabase(imageBuffer, slug)
+    if (!supabaseUrl) {
+      console.warn(`  ⚠️  Could not upload image to Supabase, using placeholder`)
+      return "/placeholder.svg?height=400&width=400"
+    }
+
+    return supabaseUrl
   } catch (error) {
-    console.warn(`⚠️  Could not fetch image from ${detailUrl}:`, error)
+    console.warn(`  ⚠️  Could not fetch image from ${detailUrl}:`, error)
     return "/placeholder.svg?height=400&width=400"
   }
 }
@@ -224,8 +356,8 @@ async function fetchRingImage(detailUrl: string): Promise<string> {
  * Convert a ParsedRing to RingData for database insertion
  */
 async function buildRingData(ring: ParsedRing, orderIndex: number): Promise<RingData> {
-  console.log(`📸 Fetching image for ${ring.code}...`)
-  const imageUrl = await fetchRingImage(ring.detailUrl)
+  console.log(`📸 Fetching and uploading image for ${ring.code}...`)
+  const imageUrl = await fetchRingImage(ring.detailUrl, ring.slug)
 
   const metalType = `Oro ${ring.goldColor}`
   const description = `${ring.code} en oro ${ring.goldColor} ${ring.goldKarat}k con diamante de ${ring.diamondPoints} puntos.`
