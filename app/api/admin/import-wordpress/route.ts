@@ -103,9 +103,8 @@ export async function POST() {
             const urlParts = link.split("/")
             const slug = urlParts[urlParts.length - 2] || urlParts[urlParts.length - 1]
 
-            const title = $detail("h1").first().text().trim()
-            const codeMatch = title.match(/Anillo\s+(\d+)/i)
-            const code = codeMatch ? `Anillo ${codeMatch[1]}` : title || slug
+            const h1Text = $detail("h1").first().text().trim()
+            const code = h1Text || slug
 
             const tableText = $detail("table, .product-details, .entry-content").text()
             const textContent = $detail(".entry-content, article").text()
@@ -184,7 +183,7 @@ export async function POST() {
             const ringData = {
               code,
               slug,
-              name: code,
+              name: code, // Use the code as name for consistency
               description: description.substring(0, 500).trim(),
               price,
               diamond_points,
