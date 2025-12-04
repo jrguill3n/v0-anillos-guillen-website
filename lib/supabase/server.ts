@@ -1,11 +1,29 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
-/**
- * Especially important if using Fluid compute: Don't put this client in a
- * global variable. Always create a new client within each function when using
- * it.
- */
+function createNoOpClient() {
+  return {
+    from: () => ({
+      select: () => ({
+        eq: () => ({ data: null, error: new Error("Supabase not configured") }),
+        single: () => ({ data: null, error: new Error("Supabase not configured") }),
+        data: [],
+        error: new Error("Supabase not configured"),
+      }),
+      insert: () => ({ data: null, error: new Error("Supabase not configured") }),
+      update: () => ({ data: null, error: new Error("Supabase not configured") }),
+      delete: () => ({ data: null, error: new Error("Supabase not configured") }),
+      upsert: () => ({ data: null, error: new Error("Supabase not configured") }),
+    }),
+    storage: {
+      from: () => ({
+        upload: () => ({ data: null, error: new Error("Supabase not configured") }),
+        getPublicUrl: () => ({ data: { publicUrl: "" } }),
+      }),
+    },
+  } as any
+}
+
 export async function createClient() {
   const cookieStore = await cookies()
 
@@ -13,12 +31,8 @@ export async function createClient() {
   const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("[v0] Missing Supabase environment variables")
-    console.error("[v0] SUPABASE_URL:", supabaseUrl ? "✓ Set" : "✗ Missing")
-    console.error("[v0] SUPABASE_ANON_KEY:", supabaseAnonKey ? "✓ Set" : "✗ Missing")
-    throw new Error(
-      "Missing Supabase environment variables. Please check that SUPABASE_URL and SUPABASE_ANON_KEY are set.",
-    )
+    console.warn("[v0] Missing Supabase environment variables - using no-op client")
+    return createNoOpClient()
   }
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
