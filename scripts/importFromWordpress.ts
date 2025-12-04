@@ -25,13 +25,13 @@ interface RingData {
   code: string
   name: string
   description: string
-  price_mxn: number
+  price: number // changed from price_mxn to price
   diamond_points: number
-  gold_color: string
-  gold_karat: number
   metal_type: string
   metal_karat: string
   metal_color: string
+  diamond_clarity: string | null
+  diamond_color: string | null
   image_url: string
   order_index: number
   is_active: boolean
@@ -78,6 +78,7 @@ async function fetchHTML(url: string): Promise<string> {
 /**
  * Parse a ring's text content to extract details
  * Example: "Anillo 0922 $ 7,200.00 Diamante: 5 puntos Oro: Amarillo 14k"
+ * Example: "Anillo 0135 $ 12,500.00 Diamante: 15 +15 puntos Oro: Blanco 14k"
  */
 function parseRingText(text: string): Partial<ParsedRing> | null {
   const cleanText = text.trim().replace(/\s+/g, " ")
@@ -91,9 +92,18 @@ function parseRingText(text: string): Partial<ParsedRing> | null {
   const priceMatch = cleanText.match(/\$\s*([\d,]+\.?\d*)/i)
   const price = priceMatch ? Number.parseFloat(priceMatch[1].replace(/,/g, "")) : 0
 
-  // Extract diamond points (e.g., "5 puntos")
-  const diamondMatch = cleanText.match(/Diamante:\s*(\d+)\s*punto/i)
-  const diamondPoints = diamondMatch ? Number.parseInt(diamondMatch[1], 10) : 0
+  const diamondText = cleanText.match(/Diamante:\s*([^O]+)Oro:/i)?.[1] || ""
+  let diamondPoints = 0
+
+  // Check for "+" pattern (e.g., "15 +15" or "26+21")
+  const plusMatch = diamondText.match(/(\d+)\s*\+\s*(\d+)/i)
+  if (plusMatch) {
+    diamondPoints = Number.parseInt(plusMatch[1], 10) + Number.parseInt(plusMatch[2], 10)
+  } else {
+    // Single number pattern (e.g., "5 puntos")
+    const singleMatch = diamondText.match(/(\d+)\s*punto/i)
+    diamondPoints = singleMatch ? Number.parseInt(singleMatch[1], 10) : 0
+  }
 
   // Extract gold color and karat (e.g., "Amarillo 14k")
   const goldMatch = cleanText.match(/Oro:\s*(Blanco|Amarillo|Rosa)\s*(\d+)k/i)
@@ -117,9 +127,8 @@ async function parseCatalogPage(): Promise<ParsedRing[]> {
   const $ = cheerio.load(html)
   const rings: ParsedRing[] = []
 
-  // Find all catalog item links
-  // Looking for links within the content that match the pattern
-  $("a").each((_, element) => {
+  // Look for links within the main content area that contain "Anillo"
+  $(".entry-content a, article a").each((_, element) => {
     const $link = $(element)
     const href = $link.attr("href")
     const text = $link.text()
@@ -127,13 +136,24 @@ async function parseCatalogPage(): Promise<ParsedRing[]> {
     // Check if this looks like a ring link
     if (!href || !text.includes("Anillo")) return
 
+    // Skip if it's not a catalog link
+    if (!href.includes("/catalogo/")) return
+
     // Parse the ring text
     const parsed = parseRingText(text)
     if (!parsed || !parsed.code) return
 
-    // Extract slug from URL
-    const urlMatch = href.match(/\/catalogo\/([^/]+)\/?/)
-    const slug = urlMatch ? urlMatch[1] : parsed.code.toLowerCase().replace(/\s+/g, "-")
+    let slug = ""
+    if (href.includes("/catalogo/")) {
+      // Extract the slug part after /catalogo/
+      const urlMatch = href.match(/\/catalogo\/([^/?#]+)/i)
+      slug = urlMatch ? urlMatch[1].replace(/\/$/, "") : ""
+    }
+
+    // Fallback: generate slug from code if not found in URL
+    if (!slug) {
+      slug = parsed.code.toLowerCase().replace(/\s+/g, "-")
+    }
 
     // Build full detail URL
     const detailUrl = href.startsWith("http") ? href : `${BASE_URL}${href}`
@@ -161,27 +181,36 @@ async function fetchRingImage(detailUrl: string): Promise<string> {
     const html = await fetchHTML(detailUrl)
     const $ = cheerio.load(html)
 
-    // Try multiple selectors to find the main product image
     let imageUrl = ""
 
-    // Try WooCommerce product image selectors
-    imageUrl = $(".woocommerce-product-gallery__image img").first().attr("src") || ""
+    // First, try to find the main product image in common WordPress/WooCommerce locations
+    const selectors = [
+      ".woocommerce-product-gallery__image img",
+      ".product-images img",
+      "article.product img",
+      ".entry-content img",
+      "article img",
+      ".post-content img",
+      "main img",
+    ]
 
-    if (!imageUrl) {
-      imageUrl = $(".product-images img").first().attr("src") || ""
-    }
+    for (const selector of selectors) {
+      const $img = $(selector).first()
+      const src = $img.attr("src") || $img.attr("data-src") || ""
 
-    if (!imageUrl) {
-      imageUrl = $("article img").first().attr("src") || ""
-    }
-
-    if (!imageUrl) {
-      imageUrl = $(".entry-content img").first().attr("src") || ""
+      if (src && !src.includes("logo") && !src.includes("icon")) {
+        imageUrl = src
+        break
+      }
     }
 
     // Make absolute URL if needed
     if (imageUrl && !imageUrl.startsWith("http")) {
-      imageUrl = `${BASE_URL}${imageUrl}`
+      imageUrl = imageUrl.startsWith("/") ? `${BASE_URL}${imageUrl}` : `${BASE_URL}/${imageUrl}`
+    }
+
+    if (!imageUrl) {
+      console.warn(`⚠️  No image found for ${detailUrl}`)
     }
 
     return imageUrl || "/placeholder.svg?height=400&width=400"
@@ -206,13 +235,13 @@ async function buildRingData(ring: ParsedRing, orderIndex: number): Promise<Ring
     code: ring.code,
     name: ring.code,
     description,
-    price_mxn: ring.price,
+    price: ring.price, // changed from price_mxn to price
     diamond_points: ring.diamondPoints,
-    gold_color: ring.goldColor,
-    gold_karat: ring.goldKarat,
     metal_type: metalType,
     metal_karat: `${ring.goldKarat}k`,
     metal_color: ring.goldColor,
+    diamond_clarity: null,
+    diamond_color: null,
     image_url: imageUrl,
     order_index: orderIndex,
     is_active: true,

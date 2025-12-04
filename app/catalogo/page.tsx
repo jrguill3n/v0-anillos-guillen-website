@@ -57,6 +57,7 @@ export default async function CatalogoPage() {
     .select("*")
     .eq("is_active", true)
     .order("order_index", { ascending: true })
+    .order("created_at", { ascending: false })
 
   if (error) {
     console.error("[v0] Error fetching rings:", error)
@@ -78,26 +79,26 @@ export default async function CatalogoPage() {
 
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {rings?.map((ring) => (
-                <Link key={ring.id} href={`/catalogo/${ring.code}`}>
+                <Link key={ring.id} href={`/catalogo/${ring.slug}`}>
                   <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-accent/20">
                     <div className="aspect-square overflow-hidden bg-secondary relative">
                       <Image
                         src={ring.image_url || "/placeholder.svg?height=800&width=800"}
-                        alt={ring.name}
+                        alt={`${ring.code} - ${ring.name}`}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     </div>
                     <CardContent className="p-6">
-                      <h3 className="mb-3 font-serif text-xl font-semibold">{ring.name}</h3>
-                      <div className="space-y-2 text-sm text-muted-foreground">
-                        <p className="text-lg font-semibold text-foreground">
-                          ${ring.price?.toLocaleString("es-MX")} MXN
-                        </p>
-                        <p>{ring.diamond_points} puntos de diamante</p>
+                      <h3 className="mb-1 text-sm font-medium text-muted-foreground">{ring.code}</h3>
+                      <p className="mb-3 text-lg font-semibold text-foreground">
+                        ${ring.price?.toLocaleString("es-MX")} MXN
+                      </p>
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        <p>Diamante: {ring.diamond_points} puntos</p>
                         <p>
-                          {ring.metal_color} {ring.metal_karat}
+                          Oro: {ring.metal_color} {ring.metal_karat}
                         </p>
                       </div>
                     </CardContent>
