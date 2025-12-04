@@ -184,7 +184,7 @@ export async function POST() {
             const ringData = {
               code,
               slug,
-              name: code, // Use code as name instead of page title
+              name: code,
               description: description.substring(0, 500).trim(),
               price,
               diamond_points,
@@ -196,11 +196,7 @@ export async function POST() {
               order_index: 0,
             }
 
-            const { data: existingRing } = await supabase
-              .from("rings")
-              .select("id")
-              .or(`slug.eq.${slug},code.eq.${ringData.code}`)
-              .single()
+            const { data: existingRing } = await supabase.from("rings").select("id").eq("slug", slug).single()
 
             let error
             if (existingRing) {
