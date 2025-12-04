@@ -129,107 +129,45 @@ async function parseCatalogPage(): Promise<ParsedRing[]> {
   const $ = cheerio.load(html)
   const rings: ParsedRing[] = []
 
-  // Try multiple common WooCommerce and WordPress product selectors
-  const productSelectors = [
-    ".products .product",
-    ".woocommerce-loop-product",
-    "ul.products li",
-    "article.product",
-    ".type-product",
-  ]
+  $('a[href*="/catalogo/anillo-"]').each((_, element) => {
+    const $link = $(element)
+    const href = $link.attr("href")
+    if (!href) return
 
-  let $products = $()
-  for (const selector of productSelectors) {
-    $products = $(selector)
-    if ($products.length > 0) {
-      console.log(`✅ Found ${$products.length} products using selector: ${selector}`)
-      break
-    }
-  }
+    // Get the h3 heading text (ring code like "Anillo 0122")
+    const $heading = $link.find("h3")
+    const headingText = $heading.text().trim()
 
-  if ($products.length === 0) {
-    console.warn("⚠️  No products found with standard selectors, trying link-based approach...")
-    // Fallback to the original link-based approach
-    $(".entry-content a, article a").each((_, element) => {
-      const $link = $(element)
-      const href = $link.attr("href")
-      const text = $link.text()
+    // Get all text from the link
+    const fullText = $link.text().trim()
 
-      if (!href || !text.includes("Anillo") || !href.includes("/catalogo/")) return
+    // Extract slug from URL
+    const urlMatch = href.match(/\/catalogo\/([^/?#]+)/i)
+    const slug = urlMatch ? urlMatch[1].replace(/\/$/, "") : ""
 
-      const parsed = parseRingText(text)
-      if (!parsed || !parsed.code) return
+    if (!slug || !headingText.includes("Anillo")) return
 
-      const urlMatch = href.match(/\/catalogo\/([^/?#]+)/i)
-      const slug = urlMatch ? urlMatch[1].replace(/\/$/, "") : parsed.code.toLowerCase().replace(/\s+/g, "-")
-      const detailUrl = href.startsWith("http") ? href : `${BASE_URL}${href}`
+    const parsed = parseRingText(fullText)
+    if (!parsed || !parsed.code) return
 
-      rings.push({
-        code: parsed.code,
-        price: parsed.price || 0,
-        diamondPoints: parsed.diamondPoints || 0,
-        goldColor: parsed.goldColor || "Amarillo",
-        goldKarat: parsed.goldKarat || 14,
-        detailUrl,
-        slug,
-      })
+    const detailUrl = href.startsWith("http") ? href : `${BASE_URL}${href}`
+
+    rings.push({
+      code: parsed.code,
+      price: parsed.price || 0,
+      diamondPoints: parsed.diamondPoints || 0,
+      goldColor: parsed.goldColor || "Amarillo",
+      goldKarat: parsed.goldKarat || 14,
+      detailUrl,
+      slug,
     })
-  } else {
-    // Process each product card
-    $products.each((_, element) => {
-      const $product = $(element)
-
-      // Find the product link
-      const $link = $product.find("a").first()
-      const href = $link.attr("href")
-
-      if (!href) return
-
-      // Get all text content from the product card
-      const text = $product.text()
-
-      // Parse the ring text
-      const parsed = parseRingText(text)
-      if (!parsed || !parsed.code) return
-
-      // Extract slug from URL
-      let slug = ""
-      if (href.includes("/catalogo/")) {
-        const urlMatch = href.match(/\/catalogo\/([^/?#]+)/i)
-        slug = urlMatch ? urlMatch[1].replace(/\/$/, "") : ""
-      }
-
-      // Fallback: generate slug from code if not found in URL
-      if (!slug) {
-        slug = parsed.code.toLowerCase().replace(/\s+/g, "-")
-      }
-
-      // Build full detail URL
-      const detailUrl = href.startsWith("http") ? href : `${BASE_URL}${href}`
-
-      rings.push({
-        code: parsed.code,
-        price: parsed.price || 0,
-        diamondPoints: parsed.diamondPoints || 0,
-        goldColor: parsed.goldColor || "Amarillo",
-        goldKarat: parsed.goldKarat || 14,
-        detailUrl,
-        slug,
-      })
-    })
-  }
+  })
 
   console.log(`✅ Found ${rings.length} rings in catalog`)
 
   if (rings.length === 0) {
-    console.log("\n⚠️  Debug: Dumping page structure...")
-    console.log(
-      "Classes found:",
-      $('[class*="product"]')
-        .map((_, el) => $(el).attr("class"))
-        .get()
-        .slice(0, 10),
-    )
+    console.log("\n⚠️  No rings found. Dumping first 500 chars of HTML:")
+    console.log($.html().substring(0, 500))
   }
 
   return rings
