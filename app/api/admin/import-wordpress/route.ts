@@ -103,30 +103,38 @@ export async function POST() {
             const urlParts = link.split("/")
             const slug = urlParts[urlParts.length - 2] || urlParts[urlParts.length - 1]
 
-            // Extract code from title or slug
             const title = $detail("h1").first().text().trim()
-            const codeMatch = title.match(/Anillo\s+(\d+)/i) || slug.match(/anillo-(\d+)/)
-            const code = codeMatch ? codeMatch[1] : slug.replace("anillo-", "")
+            const codeMatch = title.match(/Anillo\s+(\d+)/i)
+            const code = codeMatch ? `Anillo ${codeMatch[1]}` : title || slug
 
-            // Extract text content
+            const tableText = $detail("table, .product-details, .entry-content").text()
             const textContent = $detail(".entry-content, article").text()
 
-            // Extract price
-            const priceMatch = textContent.match(/\$\s*([\d,]+)/i)
+            // Extract price from table (format: "Precio $ 7,200.00")
+            const priceMatch =
+              tableText.match(/Precio[|\s]*\$\s*([\d,]+(?:\.\d{2})?)/i) ||
+              textContent.match(/\$\s*([\d,]+(?:\.\d{2})?)/i)
             const price = priceMatch ? Number.parseFloat(priceMatch[1].replace(/,/g, "")) : null
 
-            // Extract diamond points (handle "15 +15 puntos" format)
-            const diamondMatch = textContent.match(/(\d+)\s*\+?\s*(\d+)?\s*puntos?/i)
+            // Extract diamond points from table (format: "Diamante 5 puntos" or "15 +15 puntos")
+            const diamondMatch =
+              tableText.match(/Diamante[|\s]*(\d+)\s*\+?\s*(\d+)?\s*puntos?/i) ||
+              textContent.match(/(\d+)\s*\+?\s*(\d+)?\s*puntos?/i)
             const diamond_points = diamondMatch
               ? Number.parseInt(diamondMatch[1]) + (diamondMatch[2] ? Number.parseInt(diamondMatch[2]) : 0)
               : null
 
-            // Extract gold info
-            const goldColorMatch = textContent.match(/(amarillo|blanco|rosa|rose)/i)
-            const metal_color = goldColorMatch ? goldColorMatch[1].toLowerCase() : null
+            // Extract gold info from table (format: "Oro Blanco 14k")
+            const goldMatch =
+              tableText.match(/Oro[|\s]*(amarillo|blanco|rosa|rose)\s*(\d+)\s*k/i) ||
+              textContent.match(/(amarillo|blanco|rosa|rose)\s*(\d+)\s*k/i)
+            const metal_color = goldMatch ? goldMatch[1].toLowerCase() : null
+            const metal_karat = goldMatch ? Number.parseInt(goldMatch[2]) : null
 
-            const goldKaratMatch = textContent.match(/(\d+)\s*k/i)
-            const metal_karat = goldKaratMatch ? Number.parseInt(goldKaratMatch[1]) : null
+            let description = $detail(".entry-content p").first().text().trim()
+            if (!description || description.length < 10) {
+              description = `${code} - Anillo de compromiso con diamante de ${diamond_points || 0} puntos en oro ${metal_color || ""} de ${metal_karat || 14}k`
+            }
 
             let image_url = "/solitaire-diamond-ring.png"
 
@@ -174,10 +182,10 @@ export async function POST() {
             }
 
             const ringData = {
-              code: `Anillo ${code}`,
+              code,
               slug,
-              name: title || `Anillo ${code}`,
-              description: textContent.substring(0, 500).trim(),
+              name: code, // Use code as name instead of page title
+              description: description.substring(0, 500).trim(),
               price,
               diamond_points,
               metal_color,
