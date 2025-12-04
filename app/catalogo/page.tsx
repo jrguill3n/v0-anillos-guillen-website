@@ -51,22 +51,32 @@ export const metadata: Metadata = {
 export const revalidate = 3600 // Revalidate every hour
 
 export default async function CatalogoPage() {
-  const supabase = await createClient()
-  const { data: rings, error } = await supabase
-    .from("rings")
-    .select("*")
-    .eq("is_active", true)
-    .order("order_index", { ascending: true })
-    .order("created_at", { ascending: false })
+  let rings = []
+  let error = null
 
-  if (error) {
-    console.error("[v0] Error fetching rings:", error)
+  try {
+    const supabase = await createClient()
+    const result = await supabase
+      .from("rings")
+      .select("*")
+      .eq("is_active", true)
+      .order("order_index", { ascending: true })
+      .order("created_at", { ascending: false })
+
+    if (result.error) {
+      console.error("[v0] Error fetching rings:", result.error)
+      error = result.error
+    } else {
+      rings = result.data || []
+    }
+  } catch (e) {
+    console.error("[v0] Failed to create Supabase client or fetch rings:", e)
+    error = e
   }
 
-  const validRings =
-    rings?.filter((ring) => {
-      return ring.slug && ring.code && ring.image_url && ring.price != null
-    }) || []
+  const validRings = rings.filter((ring) => {
+    return ring.slug && ring.code && ring.image_url && ring.price != null
+  })
 
   return (
     <>
@@ -82,35 +92,45 @@ export default async function CatalogoPage() {
               </p>
             </div>
 
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {validRings.map((ring) => (
-                <Link key={ring.id} href={`/catalogo/${ring.slug}`}>
-                  <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-accent/20">
-                    <div className="aspect-square overflow-hidden bg-secondary relative">
-                      <Image
-                        src={ring.image_url || "/placeholder.svg?height=800&width=800"}
-                        alt={`${ring.code || "Anillo"} - ${ring.name || "Anillo de compromiso"}`}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                    <CardContent className="p-6">
-                      <h3 className="mb-1 text-sm font-medium text-muted-foreground">{ring.code}</h3>
-                      <p className="mb-3 text-lg font-semibold text-foreground">
-                        ${(ring.price || 0).toLocaleString("es-MX")} MXN
-                      </p>
-                      <div className="space-y-1 text-sm text-muted-foreground">
-                        <p>Diamante: {ring.diamond_points || 0} puntos</p>
-                        <p>
-                          Oro: {ring.metal_color || "Amarillo"} {ring.metal_karat || "14k"}
-                        </p>
+            {error || validRings.length === 0 ? (
+              <div className="text-center py-20">
+                <p className="text-lg text-muted-foreground">
+                  {error
+                    ? "No pudimos cargar el catálogo en este momento. Por favor intenta más tarde."
+                    : "Nuestro catálogo se está actualizando. Regresa pronto para ver nuestros diseños."}
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {validRings.map((ring) => (
+                  <Link key={ring.id} href={`/catalogo/${ring.slug}`}>
+                    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-accent/20">
+                      <div className="aspect-square overflow-hidden bg-secondary relative">
+                        <Image
+                          src={ring.image_url || "/placeholder.svg?height=800&width=800"}
+                          alt={`${ring.code || "Anillo"} - ${ring.name || "Anillo de compromiso"}`}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
                       </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+                      <CardContent className="p-6">
+                        <h3 className="mb-1 text-sm font-medium text-muted-foreground">{ring.code}</h3>
+                        <p className="mb-3 text-lg font-semibold text-foreground">
+                          ${(ring.price || 0).toLocaleString("es-MX")} MXN
+                        </p>
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          <p>Diamante: {ring.diamond_points || 0} puntos</p>
+                          <p>
+                            Oro: {ring.metal_color || "Amarillo"} {ring.metal_karat || "14k"}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       </main>

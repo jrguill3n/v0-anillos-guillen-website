@@ -13,8 +13,11 @@ export async function createClient() {
   const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("[v0] Missing Supabase environment variables")
+    console.error("[v0] SUPABASE_URL:", supabaseUrl ? "✓ Set" : "✗ Missing")
+    console.error("[v0] SUPABASE_ANON_KEY:", supabaseAnonKey ? "✓ Set" : "✗ Missing")
     throw new Error(
-      "Missing Supabase environment variables. Please check that SUPABASE_URL and SUPABASE_ANON_KEY are set in your environment variables.",
+      "Missing Supabase environment variables. Please check that SUPABASE_URL and SUPABASE_ANON_KEY are set.",
     )
   }
 
