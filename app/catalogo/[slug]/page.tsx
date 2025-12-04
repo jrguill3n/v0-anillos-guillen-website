@@ -64,24 +64,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function RingDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  console.log("[v0] Ring detail page rendering for slug:", (await params).slug)
-
   const { slug } = await params
 
   try {
     const supabase = await createClient()
-    console.log("[v0] Supabase client created")
 
-    const { data: ring, error } = await supabase
-      .from("rings")
-      .select("*")
-      .eq("slug", slug)
-      .eq("is_active", true)
-      .single()
-    console.log("[v0] Ring query result:", { found: !!ring, error: error?.message })
+    const { data: ring, error } = await supabase.from("rings").select("*").eq("slug", slug).single()
 
     if (error || !ring) {
-      console.error("[v0] Error fetching ring:", error)
       notFound()
     }
 
@@ -90,8 +80,6 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
     const safePrice = ring.price && !isNaN(Number(ring.price)) ? Number(ring.price) : 0
     const safeDiamondPoints =
       ring.diamond_points && !isNaN(Number(ring.diamond_points)) ? Number(ring.diamond_points) : null
-
-    console.log("[v0] Ring data prepared:", { safeCode, safeName, safePrice })
 
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anillosguillen.com"
     const pageUrl = `${baseUrl}/catalogo/${ring.slug}`
@@ -249,7 +237,6 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
       </>
     )
   } catch (error) {
-    console.error("[v0] Unexpected error in ring detail page:", error)
     throw error
   }
 }
