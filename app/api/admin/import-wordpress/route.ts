@@ -128,14 +128,15 @@ export async function POST() {
             const goldKaratMatch = textContent.match(/(\d+)\s*k/i)
             const metal_karat = goldKaratMatch ? Number.parseInt(goldKaratMatch[1]) : null
 
-            // Get image URL with fallback to placeholder
             let image_url = "/solitaire-diamond-ring.png"
-            const imgSrc =
-              $detail(".wp-post-image").attr("src") ||
-              $detail(".product-image img").first().attr("src") ||
-              $detail("article img").first().attr("src")
 
-            if (imgSrc && !imgSrc.includes("data:image")) {
+            // Try multiple image selectors and attributes
+            const img = $detail(".wp-post-image, .product-image img, article img, .entry-content img").first()
+            const imgSrc =
+              img.attr("data-src") || img.attr("data-lazy-src") || img.attr("srcset")?.split(" ")[0] || img.attr("src")
+
+            if (imgSrc && !imgSrc.includes("data:image") && imgSrc.startsWith("http")) {
+              sendLog(controller, `  Found image: ${imgSrc.substring(0, 50)}...`)
               sendLog(controller, `  Downloading image...`)
               const imageBuffer = await downloadImage(imgSrc)
               if (imageBuffer) {
@@ -154,7 +155,6 @@ export async function POST() {
               sendLog(controller, `  ⚠️ No valid image found, using placeholder`)
             }
 
-            // Insert/update ring
             const ringData = {
               code: `Anillo ${code}`,
               slug,
@@ -170,13 +170,28 @@ export async function POST() {
               order_index: 0,
             }
 
-            const { error } = await supabase.from("rings").upsert(ringData, { onConflict: "slug" })
+            const { data: existingRing } = await supabase
+              .from("rings")
+              .select("id")
+              .or(`slug.eq.${slug},code.eq.${ringData.code}`)
+              .single()
+
+            let error
+            if (existingRing) {
+              // Update existing ring
+              const result = await supabase.from("rings").update(ringData).eq("id", existingRing.id)
+              error = result.error
+            } else {
+              // Insert new ring
+              const result = await supabase.from("rings").insert(ringData)
+              error = result.error
+            }
 
             if (error) {
               sendLog(controller, `  ❌ Error: ${error.message}`)
               skipped++
             } else {
-              sendLog(controller, `  ✅ Imported: ${ringData.code}`)
+              sendLog(controller, `  ✅ ${existingRing ? "Updated" : "Imported"}: ${ringData.code}`)
               imported++
             }
           } catch (error) {
