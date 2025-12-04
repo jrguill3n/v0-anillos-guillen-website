@@ -196,24 +196,16 @@ export async function POST() {
               order_index: 0,
             }
 
-            const { data: existingRing } = await supabase.from("rings").select("id").eq("slug", slug).single()
-
-            let error
-            if (existingRing) {
-              // Update existing ring
-              const result = await supabase.from("rings").update(ringData).eq("id", existingRing.id)
-              error = result.error
-            } else {
-              // Insert new ring
-              const result = await supabase.from("rings").insert(ringData)
-              error = result.error
-            }
+            const { error } = await supabase.from("rings").upsert(ringData, {
+              onConflict: "slug",
+              ignoreDuplicates: false,
+            })
 
             if (error) {
               sendLog(controller, `  ❌ Error: ${error.message}`)
               skipped++
             } else {
-              sendLog(controller, `  ✅ ${existingRing ? "Updated" : "Imported"}: ${ringData.code}`)
+              sendLog(controller, `  ✅ Imported: ${ringData.code}`)
               imported++
             }
           } catch (error) {
