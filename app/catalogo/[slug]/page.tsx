@@ -98,7 +98,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
     "@type": "Product",
     name: `${ring.code} - Anillo de compromiso`,
     description: ring.description || "Hermoso anillo de compromiso",
-    image: `https://anillosguillen.com${ring.image_url}`,
+    image: ring.image_url || `${baseUrl}/placeholder.svg`,
     brand: {
       "@type": "Brand",
       name: "Anillos Guillén",
