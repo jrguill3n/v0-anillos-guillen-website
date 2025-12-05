@@ -29,6 +29,11 @@ export default async function AdminDashboardPage() {
             <p className="text-sm text-muted-foreground">Gestión de anillos</p>
           </div>
           <div className="flex items-center gap-3">
+            <Button asChild variant="outline" size="sm">
+              <a href="/api/admin/generate-catalog-pdf" download>
+                Descargar Catálogo
+              </a>
+            </Button>
             <form action={logoutAdmin}>
               <Button variant="outline" size="sm">
                 Cerrar sesión

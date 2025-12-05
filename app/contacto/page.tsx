@@ -203,7 +203,7 @@ export default function ContactoPage() {
                 <CardContent className="p-0">
                   <div className="aspect-video w-full overflow-hidden rounded-lg bg-secondary relative">
                     <Image
-                      src="/map-location-acapulco-mexico-street-view.jpg"
+                      src="https://a.travel-assets.com/findyours-php/viewfinder/images/res70/228000/228069-Guerrero.jpg"
                       alt="Ubicación de Anillos Guillén en Acapulco"
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1200px"
