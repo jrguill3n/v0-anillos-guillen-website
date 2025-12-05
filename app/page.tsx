@@ -96,16 +96,16 @@ export default function HomePage() {
       <Navigation />
       <main>
         {/* Hero Section */}
-        <section className="relative flex min-h-[85vh] items-center justify-center overflow-hidden bg-secondary">
+        <section className="relative flex min-h-[85vh] items-center justify-center overflow-hidden bg-gradient-to-b from-secondary/50 to-background">
           <div className="absolute inset-0 z-0">
             <Image
-              src="/elegant-diamond-engagement-ring-on-silk-fabric.jpg"
-              alt="Anillo de compromiso elegante"
+              src="/elegant-luxury-diamond-engagement-ring-on-white-ma.jpg"
+              alt="Anillo de compromiso elegante en mármol blanco"
               fill
               priority
               sizes="100vw"
-              className="object-cover opacity-15"
-              quality={85}
+              className="object-cover opacity-30"
+              quality={90}
             />
           </div>
 
@@ -117,7 +117,7 @@ export default function HomePage() {
               Creamos anillos de compromiso que simbolizan tu amor y confianza. Con más de 20 años de experiencia, somos
               tu aliado en el momento más importante.
             </p>
-            <Button asChild size="lg">
+            <Button asChild size="lg" className="shadow-lg">
               <Link href="/catalogo">Ver catálogo de anillos</Link>
             </Button>
           </div>
