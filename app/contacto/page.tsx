@@ -8,7 +8,7 @@ import Image from "next/image"
 export const metadata: Metadata = {
   title: "Contacto y Ubicación - Visítanos en Acapulco",
   description:
-    "Visita Anillos Guillén en Av. Costera Miguel Alemán, Acapulco. Contáctanos por WhatsApp: +52 744 123 4567. Horario: Lun-Vie 10:00-19:00, Sáb 10:00-15:00.",
+    "Visita Anillos Guillén en Av. Costera Miguel Alemán, Acapulco. Contáctanos por WhatsApp: +52 744 688 7367. Horario: Lun-Vie 10:00-19:00, Sáb 10:00-15:00.",
   keywords: [
     "contacto Anillos Guillén",
     "joyería Acapulco ubicación",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Contacto y Ubicación - Anillos Guillén Acapulco",
     description:
-      "Visítanos en Av. Costera Miguel Alemán, Acapulco. Contáctanos por WhatsApp o teléfono para cotizaciones personalizadas.",
+      "Visítanos en Av. Costera Miguel Alemán, Acapulco. Contáctanos por WhatsApp para cotizaciones personalizadas.",
     url: "/contacto",
     type: "website",
     images: [
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Contacto y Ubicación - Anillos Guillén Acapulco",
     description:
-      "Visítanos en Av. Costera Miguel Alemán, Acapulco. Contáctanos por WhatsApp o teléfono para cotizaciones personalizadas.",
+      "Visítanos en Av. Costera Miguel Alemán, Acapulco. Contáctanos por WhatsApp para cotizaciones personalizadas.",
     images: ["/map-location-acapulco-mexico-street-view.jpg"],
   },
 }
@@ -54,8 +54,8 @@ export default function ContactoPage() {
       "Joyería familiar especializada en anillos de compromiso con más de 20 años de experiencia en Acapulco",
     image: "https://anillosguillen.com/map-location-acapulco-mexico-street-view.jpg",
     url: "https://anillosguillen.com",
-    telephone: "+52-744-123-4567",
-    email: "contacto@anillosguillen.com",
+    telephone: "+52-744-688-7367",
+    email: "ventas@anillosguillen.com",
     priceRange: "$$$",
     address: {
       "@type": "PostalAddress",
@@ -85,7 +85,7 @@ export default function ContactoPage() {
       },
     ],
     paymentAccepted: "Cash, Credit Card, Debit Card, Bank Transfer",
-    sameAs: ["https://wa.me/5217441234567"],
+    sameAs: ["https://wa.me/5217446887367", "https://www.facebook.com/anillos.guillen"],
   }
 
   return (
@@ -124,27 +124,22 @@ export default function ContactoPage() {
                 </CardContent>
               </Card>
 
-              {/* WhatsApp y Teléfono */}
+              {/* WhatsApp */}
               <Card>
                 <CardContent className="p-6">
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                     <Phone className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="mb-2 font-serif text-xl font-semibold">WhatsApp y Teléfono</h3>
+                  <h3 className="mb-2 font-serif text-xl font-semibold">WhatsApp</h3>
                   <div className="space-y-2 text-muted-foreground">
                     <p>
                       <a
-                        href="https://wa.me/5217441234567"
+                        href="https://wa.me/5217446887367"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="transition-colors hover:text-primary"
                       >
-                        WhatsApp: +52 744 123 4567
-                      </a>
-                    </p>
-                    <p>
-                      <a href="tel:+527441234567" className="transition-colors hover:text-primary">
-                        Tel: (744) 123 4567
+                        +52 744 688 7367
                       </a>
                     </p>
                   </div>
@@ -159,8 +154,8 @@ export default function ContactoPage() {
                   </div>
                   <h3 className="mb-2 font-serif text-xl font-semibold">Correo Electrónico</h3>
                   <p className="text-muted-foreground">
-                    <a href="mailto:contacto@anillosguillen.com" className="transition-colors hover:text-primary">
-                      contacto@anillosguillen.com
+                    <a href="mailto:ventas@anillosguillen.com" className="transition-colors hover:text-primary">
+                      ventas@anillosguillen.com
                     </a>
                   </p>
                 </CardContent>
@@ -210,6 +205,49 @@ export default function ContactoPage() {
                       className="object-cover"
                       quality={80}
                     />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sobre nosotros */}
+            <div className="mt-12">
+              <Card>
+                <CardContent className="p-8">
+                  <h2 className="mb-6 font-serif text-2xl font-bold">Sobre nosotros</h2>
+                  <div className="space-y-4 text-muted-foreground">
+                    <p className="flex items-start gap-3">
+                      <span className="text-xl">📍</span>
+                      <span>
+                        Estamos en Acapulco, Gro. México. Atendemos en nuestro establecimiento y enviamos a toda la
+                        República Mexicana.
+                      </span>
+                    </p>
+                    <p className="flex items-start gap-3">
+                      <span className="text-xl">💍</span>
+                      <span>
+                        Nuestros anillos son en Oro de 14K con Diamante Natural. Los puntos es el tamaño del diamante.
+                      </span>
+                    </p>
+                    <p className="flex items-start gap-3">
+                      <span className="text-xl">📦</span>
+                      <span>
+                        Nuestras piezas incluyen: certificado de autenticidad, póliza de garantía, nota de venta y caja
+                        de nogal.
+                      </span>
+                    </p>
+                    <p className="flex items-start gap-3">
+                      <span className="text-xl">✅</span>
+                      <span>
+                        Nuestros productos están disponibles para entrega inmediata. Aceptamos todos los medios de pago.
+                      </span>
+                    </p>
+                    <p className="flex items-start gap-3">
+                      <span className="text-xl">👤</span>
+                      <span>
+                        Atención Personalizada. Te acompañamos en cada paso para encontrar el anillo perfecto.
+                      </span>
+                    </p>
                   </div>
                 </CardContent>
               </Card>

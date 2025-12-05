@@ -37,8 +37,27 @@ export function Footer() {
             <h3 className="mb-4 font-serif text-lg font-semibold">Contacto</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>Acapulco, Guerrero</li>
-              <li>contacto@anillosguillen.com</li>
-              <li>+52 744 123 4567</li>
+              <li>ventas@anillosguillen.com</li>
+              <li>
+                <a
+                  href="https://wa.me/5217446887367"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-foreground"
+                >
+                  WhatsApp: +52 744 688 7367
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.facebook.com/anillos.guillen"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-foreground"
+                >
+                  Facebook
+                </a>
+              </li>
             </ul>
           </div>
         </div>

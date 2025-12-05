@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Gem, Shield } from "lucide-react"
-import Image from "next/image"
 
 export const metadata: Metadata = {
   title: "Anillos de Compromiso en Acapulco - Joyero de Confianza",
@@ -25,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Anillos de Compromiso en Acapulco - Joyero de Confianza",
     description:
-      "Joyería familiar con más de 20 años de experiencia en Acapulco. Especialistas en anillos de compromiso con diamantes certificados.",
+      "Joyería familiar especializada en anillos de compromiso con más de 20 años de experiencia en Acapulco",
     url: "/",
     type: "website",
     images: [
@@ -41,7 +40,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Anillos de Compromiso en Acapulco - Joyero de Confianza",
     description:
-      "Joyería familiar con más de 20 años de experiencia en Acapulco. Especialistas en anillos de compromiso con diamantes certificados.",
+      "Joyería familiar especializada en anillos de compromiso con más de 20 años de experiencia en Acapulco",
     images: ["/elegant-diamond-engagement-ring-on-silk-fabric.jpg"],
   },
 }
@@ -98,15 +97,19 @@ export default function HomePage() {
         {/* Hero Section */}
         <section className="relative flex min-h-[85vh] items-center justify-center overflow-hidden bg-gradient-to-b from-muted/50 to-background">
           <div className="absolute inset-0 z-0">
-            <Image
-              src="/elegant-luxury-diamond-engagement-ring-on-white-ma.jpg"
-              alt="Anillo de compromiso elegante en mármol blanco"
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover opacity-30"
-              quality={90}
-            />
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="h-full w-full object-cover opacity-40"
+              poster="/elegant-luxury-diamond-engagement-ring-on-white-ma.jpg"
+            >
+              {/* You'll need to add your own video file to /publichttps://hebbkx1anhila5yf.public.blob.vercel-storage.com/3327617-hd_1280_720_24fps-TXX7dya2ICHRcKpvzFVGsku1pT8JOY.mp4 */}
+              <source src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/3327617-hd_1280_720_24fps-TXX7dya2ICHRcKpvzFVGsku1pT8JOY.mp4" type="video/mp4" />
+            </video>
+            {/* Dark overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/20 to-background/60" />
           </div>
 
           <div className="container relative z-10 mx-auto max-w-7xl px-6 py-32 text-center">
@@ -175,6 +178,67 @@ export default function HomePage() {
                   (100 puntos = 1 quilate). Te asesoramos personalmente para que elijas el diamante ideal según tu
                   presupuesto y preferencias.
                 </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Sobre nosotros */}
+        <section className="py-24 bg-primary/5">
+          <div className="container mx-auto max-w-7xl px-6">
+            <h2 className="mb-16 text-center font-serif text-4xl font-bold tracking-tight md:text-5xl">
+              Sobre nosotros
+            </h2>
+
+            <div className="mx-auto max-w-4xl space-y-6">
+              <div className="flex items-start gap-4 rounded-lg border bg-card p-6 shadow-sm">
+                <span className="text-2xl">📍</span>
+                <div>
+                  <p className="text-lg">
+                    <strong>Estamos en Acapulco, Gro. México.</strong> Atendemos en nuestro establecimiento y enviamos a
+                    toda la República Mexicana.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 rounded-lg border bg-card p-6 shadow-sm">
+                <span className="text-2xl">💍</span>
+                <div>
+                  <p className="text-lg">
+                    <strong>Nuestros anillos son en Oro de 14K con Diamante Natural.</strong> Los puntos es el tamaño
+                    del diamante.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 rounded-lg border bg-card p-6 shadow-sm">
+                <span className="text-2xl">📦</span>
+                <div>
+                  <p className="text-lg">
+                    <strong>Nuestras piezas incluyen:</strong> certificado de autenticidad, póliza de garantía, nota de
+                    venta y caja de nogal.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 rounded-lg border bg-card p-6 shadow-sm">
+                <span className="text-2xl">✅</span>
+                <div>
+                  <p className="text-lg">
+                    <strong>Nuestros productos están disponibles para entrega inmediata.</strong> Aceptamos todos los
+                    medios de pago.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 rounded-lg border bg-card p-6 shadow-sm">
+                <span className="text-2xl">👤</span>
+                <div>
+                  <p className="text-lg">
+                    <strong>Atención Personalizada.</strong> Te acompañamos en cada paso para encontrar el anillo
+                    perfecto.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
