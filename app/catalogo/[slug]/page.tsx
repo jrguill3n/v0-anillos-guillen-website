@@ -5,78 +5,9 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { ArrowLeft } from "lucide-react"
 import { notFound } from "next/navigation"
-import type { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
-
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params
-
-  try {
-    const supabase = await createClient()
-    if (!supabase) {
-      return {
-        title: "Anillo - Anillos Guillén",
-        description: "Hermoso anillo de compromiso disponible en Anillos Guillén Acapulco.",
-      }
-    }
-
-    const { data: ring } = await supabase.from("rings").select("*").eq("slug", slug).single()
-
-    if (!ring) {
-      return {
-        title: "Anillo - Anillos Guillén",
-        description: "Hermoso anillo de compromiso disponible en Anillos Guillén Acapulco.",
-      }
-    }
-
-    const metalInfo = ring.metal_color && ring.metal_karat ? `${ring.metal_color} ${ring.metal_karat}` : "oro"
-    const diamondInfo = ring.diamond_points ? `${ring.diamond_points} puntos` : "diamante"
-
-    return {
-      title: `${ring.code} - Anillo de compromiso en ${metalInfo} con diamante de ${diamondInfo}`,
-      description: `${ring.description || "Hermoso anillo de compromiso"} Precio: $${ring.price?.toLocaleString("es-MX")} MXN. Disponible en Anillos Guillén Acapulco.`,
-      keywords: [
-        ring.code,
-        ring.name || ring.code,
-        ring.metal_type || "oro",
-        ring.metal_color || "",
-        "anillo de compromiso",
-        "diamante certificado",
-        "Acapulco",
-      ].filter(Boolean),
-      alternates: {
-        canonical: `/catalogo/${slug}`,
-      },
-      openGraph: {
-        title: `${ring.code} - ${metalInfo}`,
-        description: ring.description || "Hermoso anillo de compromiso",
-        url: `/catalogo/${slug}`,
-        type: "product",
-        images: [
-          {
-            url: ring.image_url || "/placeholder.svg",
-            width: 1200,
-            height: 630,
-            alt: `${ring.code} - Anillo de compromiso en ${metalInfo}`,
-          },
-        ],
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: `${ring.code} - ${metalInfo}`,
-        description: ring.description || "Hermoso anillo de compromiso",
-        images: [ring.image_url || "/placeholder.svg"],
-      },
-    }
-  } catch (error) {
-    return {
-      title: "Anillo - Anillos Guillén",
-      description: "Hermoso anillo de compromiso disponible en Anillos Guillén Acapulco.",
-    }
-  }
-}
 
 export default async function RingDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
