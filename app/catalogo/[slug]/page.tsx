@@ -81,15 +81,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function RingDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
+  console.log("[v0] Ring detail page - slug:", slug)
+
   const supabase = await createClient()
 
   if (!supabase) {
+    console.log("[v0] Ring detail page - Supabase client is null")
     notFound()
   }
 
+  console.log("[v0] Ring detail page - Querying for slug:", slug)
+
   const { data: ring, error } = await supabase.from("rings").select("*").eq("slug", slug).single()
 
+  console.log("[v0] Ring detail page - Query result:", { ring: ring ? "found" : "not found", error: error?.message })
+
   if (error || !ring) {
+    console.log("[v0] Ring detail page - Ring not found, calling notFound()")
     notFound()
   }
 
