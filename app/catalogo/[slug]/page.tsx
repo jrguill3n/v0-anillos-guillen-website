@@ -33,7 +33,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const pageUrl = `${baseUrl}/catalogo/${ring.slug}`
 
     const diamondInfo = safeDiamondPoints ? `${safeDiamondPoints} puntos` : "diamante"
-    const metalInfo = ring.metal_color && ring.metal_karat ? `${ring.metal_color} ${ring.metal_karat}` : "oro"
+    const metalKarat = ring.metal_karat
+      ? ring.metal_karat.toString().toLowerCase().includes("k")
+        ? ring.metal_karat
+        : `${ring.metal_karat}k`
+      : "14k"
+    const metalInfo = ring.metal_color && ring.metal_karat ? `${ring.metal_color} ${metalKarat}` : "oro"
 
     const description =
       ring.description ||
@@ -97,7 +102,12 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
   const diamondInfo = safeDiamondPoints
     ? `${safeDiamondPoints} puntos${ring.diamond_clarity ? `, ${ring.diamond_clarity}` : ""}${ring.diamond_color ? `, ${ring.diamond_color}` : ""}`
     : "diamante"
-  const metalInfo = ring.metal_color && ring.metal_karat ? `${ring.metal_color} ${ring.metal_karat}` : "oro"
+  const metalKarat = ring.metal_karat
+    ? ring.metal_karat.toString().toLowerCase().includes("k")
+      ? ring.metal_karat
+      : `${ring.metal_karat}k`
+    : "14k"
+  const metalInfo = ring.metal_color && ring.metal_karat ? `${ring.metal_color} ${metalKarat}` : "oro"
 
   const whatsappMessage = encodeURIComponent(
     `Hola, me interesa este anillo de compromiso: ${safeCode}.\n\n` +

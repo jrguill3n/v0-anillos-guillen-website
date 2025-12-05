@@ -119,7 +119,12 @@ export default async function CatalogoPage() {
                         <div className="space-y-1 text-sm text-muted-foreground">
                           <p>Diamante: {ring.diamond_points || 0} puntos</p>
                           <p>
-                            Oro: {ring.metal_color || "Amarillo"} {ring.metal_karat || "14k"}
+                            Oro: {ring.metal_color || "Amarillo"}{" "}
+                            {ring.metal_karat
+                              ? ring.metal_karat.toString().toLowerCase().includes("k")
+                                ? ring.metal_karat
+                                : `${ring.metal_karat}k`
+                              : "14k"}
                           </p>
                         </div>
                       </CardContent>
