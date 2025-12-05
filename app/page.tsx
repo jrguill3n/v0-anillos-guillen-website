@@ -96,7 +96,7 @@ export default function HomePage() {
       <Navigation />
       <main>
         {/* Hero Section */}
-        <section className="relative flex min-h-[85vh] items-center justify-center overflow-hidden bg-gradient-to-b from-secondary/50 to-background">
+        <section className="relative flex min-h-[85vh] items-center justify-center overflow-hidden bg-gradient-to-b from-muted/50 to-background">
           <div className="absolute inset-0 z-0">
             <Image
               src="/elegant-luxury-diamond-engagement-ring-on-white-ma.jpg"
@@ -139,7 +139,7 @@ export default function HomePage() {
         </section>
 
         {/* Lo que necesitas saber */}
-        <section className="border-y bg-secondary/30 py-24">
+        <section className="border-y bg-muted/30 py-24">
           <div className="container mx-auto max-w-7xl px-6">
             <h2 className="mb-16 text-center font-serif text-4xl font-bold tracking-tight md:text-5xl">
               Lo que necesitas saber
@@ -149,8 +149,8 @@ export default function HomePage() {
               {/* Montadura */}
               <div className="rounded-lg border bg-card p-10 shadow-sm">
                 <div className="mb-6 flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent/10">
-                    <Shield className="h-7 w-7 text-accent" />
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                    <Shield className="h-7 w-7 text-primary" />
                   </div>
                   <h3 className="font-serif text-2xl font-semibold">Montadura</h3>
                 </div>
@@ -164,8 +164,8 @@ export default function HomePage() {
               {/* Diamante */}
               <div className="rounded-lg border bg-card p-10 shadow-sm">
                 <div className="mb-6 flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent/10">
-                    <Gem className="h-7 w-7 text-accent" />
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                    <Gem className="h-7 w-7 text-primary" />
                   </div>
                   <h3 className="font-serif text-2xl font-semibold">Diamante</h3>
                 </div>

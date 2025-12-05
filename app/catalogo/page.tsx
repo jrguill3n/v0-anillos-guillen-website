@@ -101,7 +101,7 @@ export default async function CatalogoPage() {
               <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {validRings.map((ring) => (
                   <Link key={ring.id} href={`/catalogo/${ring.slug}`}>
-                    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-accent/20">
+                    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20">
                       <div className="aspect-square overflow-hidden bg-secondary relative">
                         <Image
                           src={ring.image_url || "/placeholder.svg?height=800&width=800"}

@@ -189,7 +189,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
               <h1 className="mb-2 font-serif text-4xl font-bold tracking-tight md:text-5xl">{safeCode}</h1>
               {safeName && safeName !== safeCode && <p className="mb-6 text-lg text-muted-foreground">{safeName}</p>}
 
-              <p className="mb-6 text-3xl font-semibold text-accent">${safePrice.toLocaleString("es-MX")} MXN</p>
+              <p className="mb-6 text-3xl font-semibold text-primary">${safePrice.toLocaleString("es-MX")} MXN</p>
 
               <div className="mb-6 space-y-3 border-y border-border py-6">
                 {safeDiamondPoints && (
