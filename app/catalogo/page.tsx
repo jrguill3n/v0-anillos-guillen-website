@@ -65,7 +65,6 @@ export default async function CatalogoPage() {
     } else {
       const result = await supabase
         .from("rings")
-        .eq("is_active", true)
         .order("order_index", { ascending: true })
         .order("created_at", { ascending: false })
         .select("*")
