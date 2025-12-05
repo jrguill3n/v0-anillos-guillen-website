@@ -51,43 +51,29 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic"
 
 export default async function CatalogoPage() {
-  console.log("[v0] Catalog page rendering")
-
   let rings = []
   let error = null
 
   try {
     const supabase = await createClient()
+    const result = await supabase
+      .from("rings")
+      .select("*")
+      .order("order_index", { ascending: true })
+      .order("created_at", { ascending: false })
 
-    if (!supabase) {
-      console.error("[v0] Supabase client could not be created")
-      error = new Error("Database connection unavailable")
+    if (result.error) {
+      error = result.error
     } else {
-      const result = await supabase
-        .from("rings")
-        .order("order_index", { ascending: true })
-        .order("created_at", { ascending: false })
-        .select("*")
-
-      console.log("[v0] Rings query result:", { count: result.data?.length || 0, error: result.error?.message })
-
-      if (result.error) {
-        console.error("[v0] Error fetching rings:", result.error)
-        error = result.error
-      } else {
-        rings = result.data || []
-      }
+      rings = result.data || []
     }
   } catch (e) {
-    console.error("[v0] Failed to fetch rings:", e)
     error = e
   }
 
   const validRings = rings.filter((ring) => {
     return ring.slug && ring.code && ring.image_url && ring.price != null
   })
-
-  console.log("[v0] Valid rings filtered:", { total: rings.length, valid: validRings.length })
 
   return (
     <>

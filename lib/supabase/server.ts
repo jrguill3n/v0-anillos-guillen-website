@@ -4,18 +4,11 @@ import { cookies } from "next/headers"
 export async function createClient() {
   const cookieStore = await cookies()
 
-  const supabaseUrl =
-    process.env.SUPABASE_URL || process.env.POSTGRES_HOST?.replace("aws-0-us-west-1.pooler.supabase.com", "supabase.co")
-
+  const supabaseUrl = process.env.SUPABASE_URL
   const supabaseKey = process.env.SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseKey) {
-    console.error("[v0] Supabase environment variables not found")
-    console.error(
-      "[v0] Available env vars:",
-      Object.keys(process.env).filter((k) => k.includes("SUPABASE") || k.includes("POSTGRES")),
-    )
-    return null
+    throw new Error("Missing Supabase environment variables")
   }
 
   return createServerClient(supabaseUrl, supabaseKey, {
