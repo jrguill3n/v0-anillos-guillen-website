@@ -108,8 +108,8 @@ export default function ContactoPage() {
               {/* Dirección */}
               <Card>
                 <CardContent className="p-6">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
-                    <MapPin className="h-6 w-6 text-accent" />
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                    <MapPin className="h-6 w-6 text-primary" />
                   </div>
                   <h3 className="mb-2 font-serif text-xl font-semibold">Dirección</h3>
                   <p className="text-muted-foreground leading-relaxed">
@@ -127,8 +127,8 @@ export default function ContactoPage() {
               {/* WhatsApp y Teléfono */}
               <Card>
                 <CardContent className="p-6">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
-                    <Phone className="h-6 w-6 text-accent" />
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                    <Phone className="h-6 w-6 text-primary" />
                   </div>
                   <h3 className="mb-2 font-serif text-xl font-semibold">WhatsApp y Teléfono</h3>
                   <div className="space-y-2 text-muted-foreground">
@@ -137,13 +137,13 @@ export default function ContactoPage() {
                         href="https://wa.me/5217441234567"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="transition-colors hover:text-accent"
+                        className="transition-colors hover:text-primary"
                       >
                         WhatsApp: +52 744 123 4567
                       </a>
                     </p>
                     <p>
-                      <a href="tel:+527441234567" className="transition-colors hover:text-accent">
+                      <a href="tel:+527441234567" className="transition-colors hover:text-primary">
                         Tel: (744) 123 4567
                       </a>
                     </p>
@@ -154,12 +154,12 @@ export default function ContactoPage() {
               {/* Correo */}
               <Card>
                 <CardContent className="p-6">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
-                    <Mail className="h-6 w-6 text-accent" />
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                    <Mail className="h-6 w-6 text-primary" />
                   </div>
                   <h3 className="mb-2 font-serif text-xl font-semibold">Correo Electrónico</h3>
                   <p className="text-muted-foreground">
-                    <a href="mailto:contacto@anillosguillen.com" className="transition-colors hover:text-accent">
+                    <a href="mailto:contacto@anillosguillen.com" className="transition-colors hover:text-primary">
                       contacto@anillosguillen.com
                     </a>
                   </p>
@@ -169,8 +169,8 @@ export default function ContactoPage() {
               {/* Horario */}
               <Card>
                 <CardContent className="p-6">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
-                    <Clock className="h-6 w-6 text-accent" />
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                    <Clock className="h-6 w-6 text-primary" />
                   </div>
                   <h3 className="mb-2 font-serif text-xl font-semibold">Horario</h3>
                   <div className="space-y-1 text-muted-foreground">
@@ -184,8 +184,8 @@ export default function ContactoPage() {
               {/* Formas de pago */}
               <Card className="md:col-span-2">
                 <CardContent className="p-6">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
-                    <CreditCard className="h-6 w-6 text-accent" />
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                    <CreditCard className="h-6 w-6 text-primary" />
                   </div>
                   <h3 className="mb-2 font-serif text-xl font-semibold">Formas de Pago</h3>
                   <p className="text-muted-foreground leading-relaxed">
