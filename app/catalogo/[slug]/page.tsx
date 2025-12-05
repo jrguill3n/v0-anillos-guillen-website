@@ -6,8 +6,73 @@ import { Footer } from "@/components/footer"
 import { ArrowLeft } from "lucide-react"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import type { Metadata } from "next"
 
 export const dynamic = "force-dynamic"
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  try {
+    const { slug } = await params
+    const supabase = await createClient()
+    const { data: ring } = await supabase.from("rings").select("*").eq("slug", slug).single()
+
+    if (!ring) {
+      return {
+        title: "Anillo no encontrado | Anillos Guillén",
+        description: "El anillo que buscas no está disponible en este momento.",
+      }
+    }
+
+    const safeCode = ring.code && ring.code !== "Anillos Guillén" ? ring.code : `Anillo ${slug.split("-").pop()}`
+    const safeName = ring.name && ring.name !== "Anillos Guillén" ? ring.name : safeCode
+    const safePrice = ring.price && !isNaN(Number(ring.price)) ? Number(ring.price) : 0
+    const safeDiamondPoints =
+      ring.diamond_points && !isNaN(Number(ring.diamond_points)) ? Number(ring.diamond_points) : null
+
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anillosguillen.com"
+    const pageUrl = `${baseUrl}/catalogo/${ring.slug}`
+
+    const diamondInfo = safeDiamondPoints ? `${safeDiamondPoints} puntos` : "diamante"
+    const metalInfo = ring.metal_color && ring.metal_karat ? `${ring.metal_color} ${ring.metal_karat}` : "oro"
+
+    const description =
+      ring.description ||
+      `${safeCode} - Hermoso anillo de compromiso con ${diamondInfo} en ${metalInfo}. Precio: $${safePrice.toLocaleString("es-MX")} MXN. Cotiza por WhatsApp.`
+
+    return {
+      title: `${safeCode} - Anillo de compromiso | Anillos Guillén`,
+      description: description.slice(0, 160),
+      openGraph: {
+        title: `${safeCode} - ${safeName}`,
+        description: description.slice(0, 160),
+        url: pageUrl,
+        siteName: "Anillos Guillén",
+        images: [
+          {
+            url: ring.image_url || `${baseUrl}/placeholder.svg`,
+            width: 1200,
+            height: 1200,
+            alt: `${safeCode} - Anillo de compromiso`,
+          },
+        ],
+        locale: "es_MX",
+        type: "website",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${safeCode} - ${safeName}`,
+        description: description.slice(0, 160),
+        images: [ring.image_url || `${baseUrl}/placeholder.svg`],
+      },
+    }
+  } catch (error) {
+    // Return default metadata if anything fails
+    return {
+      title: "Anillo de compromiso | Anillos Guillén",
+      description: "Hermoso anillo de compromiso disponible en Anillos Guillén.",
+    }
+  }
+}
 
 export default async function RingDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
