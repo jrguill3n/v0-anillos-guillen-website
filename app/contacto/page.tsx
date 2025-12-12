@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
-import { MapPin, Phone, Mail, Clock, CreditCard, MessageCircle } from "lucide-react"
+import { MapPin, Mail, Clock, CreditCard, MessageCircle } from "lucide-react"
 import Image from "next/image"
 
 export const metadata: Metadata = {
@@ -124,35 +124,30 @@ export default function ContactoPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-primary/50 bg-primary/5">
+              <Card>
                 <CardContent className="p-6">
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                     <MessageCircle className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="mb-3 font-serif text-xl font-semibold">Contacto</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="mb-1 text-sm font-medium text-muted-foreground">WhatsApp</p>
+                  <h3 className="mb-2 font-serif text-xl font-semibold">Contacto</h3>
+                  <div className="space-y-2 text-muted-foreground leading-relaxed">
+                    <p>
+                      WhatsApp:{" "}
                       <a
                         href="https://wa.me/527444496769?text=Hola,%20me%20gustaría%20recibir%20información%20sobre%20anillos%20de%20compromiso."
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-lg font-medium text-primary transition-colors hover:text-primary/80"
+                        className="text-primary underline transition-opacity hover:opacity-70"
                       >
-                        <MessageCircle className="h-5 w-5" />
                         +52 74 44 49 67 69
                       </a>
-                    </div>
-                    <div>
-                      <p className="mb-1 text-sm font-medium text-muted-foreground">Teléfono</p>
-                      <a
-                        href="tel:7444480317"
-                        className="flex items-center gap-2 text-lg font-medium text-primary transition-colors hover:text-primary/80"
-                      >
-                        <Phone className="h-5 w-5" />
+                    </p>
+                    <p>
+                      Teléfono:{" "}
+                      <a href="tel:7444480317" className="text-primary underline transition-opacity hover:opacity-70">
                         74 44 48 03 17
                       </a>
-                    </div>
+                    </p>
                   </div>
                 </CardContent>
               </Card>
