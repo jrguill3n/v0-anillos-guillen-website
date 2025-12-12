@@ -10,6 +10,7 @@ import type { Metadata } from "next"
 import { formatGoldInfo, formatKarat, formatRingDescription } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   try {
@@ -81,6 +82,8 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
 
   const supabase = await createClient()
   const { data: ring, error } = await supabase.from("rings").select("*").eq("slug", slug).single()
+
+  console.log(`[v0] Ring detail page for ${slug}: ${ring ? "found" : "not found"} at ${new Date().toISOString()}`)
 
   if (error || !ring) {
     notFound()

@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { verifyAdminCredentials, setAdminSession, clearAdminSession } from "@/lib/admin-auth"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
 
 export async function loginAdmin(formData: FormData) {
@@ -111,6 +111,7 @@ export async function createRing(formData: FormData) {
     return { error: error.message }
   }
 
+  revalidateTag("rings")
   revalidatePath("/admin/dashboard")
   revalidatePath("/catalogo")
   return { success: true, ring: data }
@@ -142,32 +143,37 @@ export async function updateRing(id: string, formData: FormData) {
     return { error: error.message }
   }
 
+  revalidateTag("rings")
   revalidatePath("/admin/dashboard")
   revalidatePath("/catalogo")
+  if (ring?.slug) {
+    revalidatePath(`/catalogo/${ring.slug}`)
+  }
   return { success: true, ring: data }
 }
 
 export async function deleteRing(id: string) {
   const supabase = await createClient()
 
-  const { data: ring } = await supabase.from("rings").select("slug, code").eq("id", id).single()
+  const { data: ring } = await supabase.from("rings").select("slug, code, id").eq("id", id).single()
 
-  console.log("[v0] Attempting to delete ring:", { id, slug: ring?.slug, code: ring?.code })
+  console.log("[v0] Attempting to delete ring:", { id, exists: !!ring, slug: ring?.slug, code: ring?.code })
 
-  const { data, error, count } = await supabase.from("rings").delete().eq("id", id).select()
+  if (!ring) {
+    console.error("[v0] Ring not found in DB, cannot delete:", id)
+    return { error: "No se encontró el anillo para eliminar" }
+  }
 
-  console.log("[v0] Delete result:", { success: !error, affectedRows: data?.length || 0, error })
+  const { error, count } = await supabase.from("rings").delete().eq("id", id)
+
+  console.log("[v0] Delete result:", { success: !error, count, error })
 
   if (error) {
     console.error("[v0] Delete error:", error)
     return { error: error.message }
   }
 
-  if (!data || data.length === 0) {
-    console.error("[v0] Delete failed - no rows affected for id:", id)
-    return { error: "No se encontró el anillo para eliminar" }
-  }
-
+  revalidateTag("rings")
   revalidatePath("/admin/dashboard")
   revalidatePath("/catalogo")
   if (ring?.slug) {
@@ -175,7 +181,7 @@ export async function deleteRing(id: string) {
     console.log("[v0] Revalidated paths including:", `/catalogo/${ring.slug}`)
   }
 
-  console.log("[v0] Ring deleted successfully:", ring?.code)
+  console.log("[v0] Ring deleted successfully:", ring?.code, "at", new Date().toISOString())
   return { success: true }
 }
 
@@ -188,6 +194,7 @@ export async function toggleRingActive(id: string, isActive: boolean) {
     return { error: error.message }
   }
 
+  revalidateTag("rings")
   revalidatePath("/admin/dashboard")
   revalidatePath("/catalogo")
   return { success: true }
@@ -206,6 +213,7 @@ export async function updateRingOrder(updates: { id: string; order_index: number
     return { error: error.error!.message }
   }
 
+  revalidateTag("rings")
   revalidatePath("/admin/dashboard")
   revalidatePath("/catalogo")
   return { success: true }

@@ -125,14 +125,22 @@ export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
     const result = await deleteRing(ringToDelete.id)
 
     if (result.error) {
-      toast({
-        title: "Error al eliminar",
-        description: result.error,
-        variant: "destructive",
-      })
+      if (result.error.includes("encontró") || result.error.includes("not found")) {
+        // Remove from UI since it doesn't exist anyway
+        setRings((prev) => prev.filter((r) => r.id !== ringToDelete.id))
+        toast({
+          title: "Anillo ya eliminado",
+          description: "Este anillo ya no existe, se actualizó la lista.",
+        })
+      } else {
+        toast({
+          title: "Error al eliminar",
+          description: result.error,
+          variant: "destructive",
+        })
+      }
       setDeletingId(null)
     } else {
-      // Remove from local state immediately
       setRings((prev) => prev.filter((r) => r.id !== ringToDelete.id))
       toast({
         title: "Anillo eliminado",

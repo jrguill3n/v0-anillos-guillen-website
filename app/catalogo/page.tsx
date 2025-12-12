@@ -50,8 +50,8 @@ export const metadata: Metadata = {
   },
 }
 
-export const dynamic = "force-static"
-export const revalidate = 3600
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 type SortOption = "price_asc" | "price_desc" | "name_asc" | "name_desc"
 
@@ -92,11 +92,14 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
 
     if (result.error) {
       error = result.error
+      console.error("[v0] Catalog error:", error)
     } else {
       rings = result.data || []
+      console.log(`[v0] Catalog loaded: ${rings.length} rings at ${new Date().toISOString()}`)
     }
   } catch (e) {
     error = e
+    console.error("[v0] Catalog exception:", e)
   }
 
   const validRings = rings.filter((ring) => {
@@ -105,6 +108,7 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
 
   return (
     <>
+      {/* <!-- rings_count: ${validRings.length} --> */}
       <Navigation />
       <main className="min-h-screen">
         <section className="py-20">
