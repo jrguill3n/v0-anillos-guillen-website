@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
 import { formatGoldInfo } from "@/lib/utils"
+import { CatalogSortDropdown } from "@/components/catalog-sort-dropdown"
 
 export const metadata: Metadata = {
   title: "Catálogo de Anillos de Compromiso",
@@ -51,17 +52,42 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic"
 
-export default async function CatalogoPage() {
+type SortOption = "price_asc" | "price_desc" | "name_asc" | "name_desc"
+
+interface CatalogoPageProps {
+  searchParams: Promise<{ sort?: string }>
+}
+
+export default async function CatalogoPage({ searchParams }: CatalogoPageProps) {
+  const params = await searchParams
+  const sortParam = (params.sort || "price_asc") as SortOption
+
   let rings = []
   let error = null
 
   try {
     const supabase = await createClient()
-    const result = await supabase
-      .from("rings")
-      .select("*")
-      .order("order_index", { ascending: true })
-      .order("created_at", { ascending: false })
+
+    let query = supabase.from("rings").select("*")
+
+    // Apply sorting based on the sort parameter
+    switch (sortParam) {
+      case "price_desc":
+        query = query.order("price", { ascending: false })
+        break
+      case "name_asc":
+        query = query.order("code", { ascending: true })
+        break
+      case "name_desc":
+        query = query.order("code", { ascending: false })
+        break
+      case "price_asc":
+      default:
+        query = query.order("price", { ascending: true })
+        break
+    }
+
+    const result = await query
 
     if (result.error) {
       error = result.error
@@ -99,33 +125,39 @@ export default async function CatalogoPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {validRings.map((ring) => (
-                  <Link key={ring.id} href={`/catalogo/${ring.slug}`}>
-                    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20">
-                      <div className="aspect-square overflow-hidden bg-secondary relative">
-                        <Image
-                          src={ring.image_url || "/placeholder.svg?height=800&width=800"}
-                          alt={`${ring.code || "Anillo"} - ${ring.name || "Anillo de compromiso"}`}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                      </div>
-                      <CardContent className="p-6">
-                        <h3 className="mb-1 text-sm font-medium text-muted-foreground">{ring.code}</h3>
-                        <p className="mb-3 text-lg font-semibold text-foreground">
-                          ${(ring.price || 0).toLocaleString("es-MX")} MXN
-                        </p>
-                        <div className="space-y-1 text-sm text-muted-foreground">
-                          <p>Diamante: {ring.diamond_points || 0} puntos</p>
-                          <p>Oro: {formatGoldInfo(ring.metal_color, ring.metal_karat)}</p>
+              <>
+                <div className="mb-8 flex justify-end">
+                  <CatalogSortDropdown currentSort={sortParam} />
+                </div>
+
+                <div className="grid gap-6 grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+                  {validRings.map((ring) => (
+                    <Link key={ring.id} href={`/catalogo/${ring.slug}`}>
+                      <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20">
+                        <div className="aspect-square overflow-hidden bg-secondary relative">
+                          <Image
+                            src={ring.image_url || "/placeholder.svg?height=800&width=800"}
+                            alt={`${ring.code || "Anillo"} - ${ring.name || "Anillo de compromiso"}`}
+                            fill
+                            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
+                        <CardContent className="p-4 md:p-6">
+                          <h3 className="mb-1 text-xs md:text-sm font-medium text-muted-foreground">{ring.code}</h3>
+                          <p className="mb-2 md:mb-3 text-base md:text-lg font-semibold text-foreground">
+                            ${(ring.price || 0).toLocaleString("es-MX")} MXN
+                          </p>
+                          <div className="space-y-1 text-xs md:text-sm text-muted-foreground">
+                            <p>Diamante: {ring.diamond_points || 0} puntos</p>
+                            <p>Oro: {formatGoldInfo(ring.metal_color, ring.metal_karat)}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </section>
