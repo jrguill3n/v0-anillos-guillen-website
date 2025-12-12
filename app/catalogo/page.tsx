@@ -4,7 +4,7 @@ import type { Metadata } from "next"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
-import { createClient } from "@/lib/supabase/server"
+import { createClient, logDbConnection } from "@/lib/supabase/server"
 import { formatGoldInfo } from "@/lib/utils"
 import { CatalogSortDropdown } from "@/components/catalog-sort-dropdown"
 
@@ -63,6 +63,8 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
   const params = await searchParams
   const sortParam = (params.sort || "price_asc") as SortOption
 
+  const correlationId = logDbConnection("LIST_CATALOG")
+
   let rings = []
   let error = null
 
@@ -92,23 +94,40 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
 
     if (result.error) {
       error = result.error
-      console.error("[v0] Catalog error:", error)
+      console.error(`[v0] [${correlationId}] LIST_CATALOG: Error:`, error)
     } else {
       rings = result.data || []
-      console.log(`[v0] Catalog loaded: ${rings.length} rings at ${new Date().toISOString()}`)
+      console.log(`[v0] [${correlationId}] LIST_CATALOG: Fetched ${rings.length} rings at ${new Date().toISOString()}`)
     }
   } catch (e) {
     error = e
-    console.error("[v0] Catalog exception:", e)
+    console.error(`[v0] [${correlationId}] LIST_CATALOG: Exception:`, e)
   }
 
   const validRings = rings.filter((ring) => {
     return ring.slug && ring.code && ring.image_url && ring.price != null
   })
 
+  if (error) {
+    return (
+      <>
+        <Navigation />
+        <main className="min-h-screen flex items-center justify-center">
+          <div className="text-center p-8">
+            <h1 className="text-2xl font-bold text-destructive mb-4">Error al cargar el catálogo</h1>
+            <p className="text-muted-foreground">
+              No pudimos conectar con la base de datos. Por favor intenta más tarde.
+            </p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    )
+  }
+
   return (
     <>
-      {/* <!-- rings_count: ${validRings.length} --> */}
+      {/* <!-- rings_count: ${validRings.length} timestamp: ${new Date().toISOString()} --> */}
       <Navigation />
       <main className="min-h-screen">
         <section className="py-20">
@@ -121,12 +140,10 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
               </p>
             </div>
 
-            {error || validRings.length === 0 ? (
+            {validRings.length === 0 ? (
               <div className="text-center py-20">
                 <p className="text-lg text-muted-foreground">
-                  {error
-                    ? "No pudimos cargar el catálogo en este momento. Por favor intenta más tarde."
-                    : "Nuestro catálogo se está actualizando. Regresa pronto para ver nuestros diseños."}
+                  Nuestro catálogo se está actualizando. Regresa pronto para ver nuestros diseños.
                 </p>
               </div>
             ) : (
