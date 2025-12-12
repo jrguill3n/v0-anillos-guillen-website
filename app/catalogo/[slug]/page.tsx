@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Metadata } from "next"
-import { formatGoldInfo, formatKarat } from "@/lib/utils"
+import { formatGoldInfo, formatKarat, formatRingDescription } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
@@ -33,12 +33,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anillosguillen.com"
     const pageUrl = `${baseUrl}/catalogo/${ring.slug}`
 
-    const diamondInfo = safeDiamondPoints ? `diamante natural de ${safeDiamondPoints} puntos` : "diamante natural"
-    const metalInfo = formatGoldInfo(ring.metal_color, ring.metal_karat)
-
-    const description =
-      ring.description ||
-      `${safeCode} - Hermoso anillo de compromiso con ${diamondInfo} en ${metalInfo}. Precio: $${safePrice.toLocaleString("es-MX")} MXN. Cotiza por WhatsApp.`
+    const description = formatRingDescription(
+      ring.description,
+      safeCode,
+      safeDiamondPoints,
+      ring.metal_color,
+      ring.metal_karat,
+    )
 
     return {
       title: `${safeCode} - Anillo de compromiso | Anillos Guillén`,
@@ -108,6 +109,14 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
       `• Precio: $${safePrice.toLocaleString("es-MX")} MXN\n\n` +
       `¿Me puede dar más información y opciones de diamante?\n\n` +
       `Envié la consulta desde su sitio web: ${pageUrl}`,
+  )
+
+  const generatedDescription = formatRingDescription(
+    ring.description,
+    safeCode,
+    safeDiamondPoints,
+    ring.metal_color,
+    ring.metal_karat,
   )
 
   const productSchema = {
@@ -195,7 +204,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
               <div className="mb-6 space-y-3 border-y border-border py-6">
                 {safeDiamondPoints && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Diamante natural:</span>
+                    <span className="text-muted-foreground">Diamante:</span>
                     <span className="font-medium">{safeDiamondPoints} puntos</span>
                   </div>
                 )}
@@ -219,12 +228,10 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
                 )}
               </div>
 
-              {ring.description && (
-                <div className="mb-8">
-                  <h2 className="mb-3 font-serif text-xl font-semibold">Descripción</h2>
-                  <p className="text-muted-foreground leading-relaxed">{ring.description}</p>
-                </div>
-              )}
+              <div className="mb-8">
+                <h2 className="mb-3 font-serif text-xl font-semibold">Descripción</h2>
+                <p className="text-muted-foreground leading-relaxed">{generatedDescription}</p>
+              </div>
 
               <Button asChild size="lg" className="mt-auto text-base">
                 <a

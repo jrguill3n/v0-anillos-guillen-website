@@ -40,3 +40,41 @@ export function formatGoldInfo(color: string | null | undefined, karat: string |
 
   return `${capitalizedColor} ${formattedKarat}`
 }
+
+/**
+ * Ensures description includes "diamante natural" and uppercase K for karats
+ * Handles existing descriptions or generates fallback with proper formatting
+ */
+export function formatRingDescription(
+  description: string | null | undefined,
+  code: string,
+  diamondPoints: number | null,
+  goldColor: string | null,
+  goldKarat: string | number | null,
+): string {
+  if (description && description.trim()) {
+    let formatted = description
+
+    // Replace "diamante de" with "diamante natural de" if not already "natural"
+    if (formatted.includes("diamante de") && !formatted.includes("diamante natural")) {
+      formatted = formatted.replace(/diamante de/gi, "diamante natural de")
+    } else if (formatted.includes("diamante") && !formatted.includes("diamante natural")) {
+      // Replace standalone "diamante" with "diamante natural"
+      formatted = formatted.replace(/\bdiamante\b/gi, "diamante natural")
+    }
+
+    // Ensure uppercase K for karats (14k -> 14K, 18k -> 18K)
+    formatted = formatted.replace(/(\d+)k\b/gi, "$1K")
+
+    return formatted
+  }
+
+  // Generate fallback description
+  const diamondInfo = diamondPoints ? `diamante natural de ${diamondPoints} puntos` : "diamante natural"
+  const goldInfo = formatGoldInfo(goldColor, goldKarat)
+
+  return (
+    `Anillo ${code} - Hermoso anillo de compromiso con ${diamondInfo} en oro ${goldInfo}. ` +
+    `Entrega inmediata. Incluye certificado de autenticidad, póliza de garantía, nota de venta y caja de nogal.`
+  )
+}

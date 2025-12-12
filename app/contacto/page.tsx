@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
-import { MapPin, Phone, Mail, Clock, CreditCard } from "lucide-react"
+import { MapPin, Phone, Mail, Clock, CreditCard, MessageCircle } from "lucide-react"
 import Image from "next/image"
 
 export const metadata: Metadata = {
@@ -124,29 +124,35 @@ export default function ContactoPage() {
                 </CardContent>
               </Card>
 
-              {/* Contacto - WhatsApp and Phone */}
-              <Card>
+              <Card className="border-primary/50 bg-primary/5">
                 <CardContent className="p-6">
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                    <Phone className="h-6 w-6 text-primary" />
+                    <MessageCircle className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="mb-2 font-serif text-xl font-semibold">Contacto</h3>
-                  <div className="space-y-2 text-muted-foreground">
-                    <p>
+                  <h3 className="mb-3 font-serif text-xl font-semibold">Contacto</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="mb-1 text-sm font-medium text-muted-foreground">WhatsApp</p>
                       <a
                         href="https://wa.me/527444496769?text=Hola,%20me%20gustaría%20recibir%20información%20sobre%20anillos%20de%20compromiso."
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="transition-colors hover:text-primary"
+                        className="flex items-center gap-2 text-lg font-medium text-primary transition-colors hover:text-primary/80"
                       >
-                        WhatsApp: +52 74 44 49 67 69
+                        <MessageCircle className="h-5 w-5" />
+                        +52 74 44 49 67 69
                       </a>
-                    </p>
-                    <p>
-                      <a href="tel:7444480317" className="transition-colors hover:text-primary">
-                        📞 74 44 48 03 17
+                    </div>
+                    <div>
+                      <p className="mb-1 text-sm font-medium text-muted-foreground">Teléfono</p>
+                      <a
+                        href="tel:7444480317"
+                        className="flex items-center gap-2 text-lg font-medium text-primary transition-colors hover:text-primary/80"
+                      >
+                        <Phone className="h-5 w-5" />
+                        74 44 48 03 17
                       </a>
-                    </p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -210,49 +216,6 @@ export default function ContactoPage() {
                       className="object-cover"
                       quality={80}
                     />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Sobre nosotros */}
-            <div className="mt-12">
-              <Card>
-                <CardContent className="p-8">
-                  <h2 className="mb-6 font-serif text-2xl font-bold">Sobre nosotros</h2>
-                  <div className="space-y-4 text-muted-foreground">
-                    <p className="flex items-start gap-3">
-                      <span className="text-xl">📍</span>
-                      <span>
-                        Estamos en Acapulco, Gro. México. Atendemos en nuestro establecimiento y enviamos a toda la
-                        República Mexicana.
-                      </span>
-                    </p>
-                    <p className="flex items-start gap-3">
-                      <span className="text-xl">💍</span>
-                      <span>
-                        Nuestros anillos son en Oro de 14K con Diamante Natural. Los puntos es el tamaño del diamante.
-                      </span>
-                    </p>
-                    <p className="flex items-start gap-3">
-                      <span className="text-xl">📦</span>
-                      <span>
-                        Nuestras piezas incluyen: certificado de autenticidad, póliza de garantía, nota de venta y caja
-                        de nogal.
-                      </span>
-                    </p>
-                    <p className="flex items-start gap-3">
-                      <span className="text-xl">✅</span>
-                      <span>
-                        Nuestros productos están disponibles para entrega inmediata. Aceptamos todos los medios de pago.
-                      </span>
-                    </p>
-                    <p className="flex items-start gap-3">
-                      <span className="text-xl">👤</span>
-                      <span>
-                        Atención Personalizada. Te acompañamos en cada paso para encontrar el anillo perfecto.
-                      </span>
-                    </p>
                   </div>
                 </CardContent>
               </Card>
