@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -51,10 +51,27 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
   const [isActive, setIsActive] = useState(ring?.is_active ?? true)
   const [imageUrl, setImageUrl] = useState(ring?.image_url ?? "")
   const [imagePreview, setImagePreview] = useState(ring?.image_url ?? "")
+  const [goldKarat, setGoldKarat] = useState("")
   const [isUploading, setIsUploading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+
+  useEffect(() => {
+    if (ring && open) {
+      setFeatured(ring.featured ?? false)
+      setIsActive(ring.is_active ?? true)
+      setImageUrl(ring.image_url ?? "")
+      setImagePreview(ring.image_url ?? "")
+      setGoldKarat(ring.metal_karat ?? "")
+    } else if (!ring && open) {
+      setFeatured(false)
+      setIsActive(true)
+      setImageUrl("")
+      setImagePreview("")
+      setGoldKarat("14k")
+    }
+  }, [ring, open])
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -102,6 +119,7 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
     formData.set("featured", featured.toString())
     formData.set("is_active", isActive.toString())
     formData.set("image_url", imageUrl)
+    formData.set("metal_karat", goldKarat)
 
     const result = mode === "create" ? await createRing(formData) : await updateRing(ring!.id, formData)
 
@@ -257,7 +275,7 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
 
             <div className="space-y-2">
               <Label htmlFor="metal_karat">Kilates *</Label>
-              <Select name="metal_karat" defaultValue={ring?.metal_karat || "14k"}>
+              <Select name="metal_karat" value={goldKarat} onValueChange={setGoldKarat}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar" />
                 </SelectTrigger>
@@ -285,66 +303,17 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="diamond_points">Puntos diamante *</Label>
-              <Input
-                id="diamond_points"
-                name="diamond_points"
-                type="number"
-                step="0.01"
-                defaultValue={ring?.diamond_points}
-                placeholder="5"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="diamond_color">Color diamante *</Label>
-              <Select name="diamond_color" defaultValue={ring?.diamond_color || "G"}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="D">D</SelectItem>
-                  <SelectItem value="E">E</SelectItem>
-                  <SelectItem value="F">F</SelectItem>
-                  <SelectItem value="G">G</SelectItem>
-                  <SelectItem value="H">H</SelectItem>
-                  <SelectItem value="I">I</SelectItem>
-                  <SelectItem value="J">J</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="diamond_clarity">Claridad diamante *</Label>
-              <Select name="diamond_clarity" defaultValue={ring?.diamond_clarity || "VS1"}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FL">FL</SelectItem>
-                  <SelectItem value="IF">IF</SelectItem>
-                  <SelectItem value="VVS1">VVS1</SelectItem>
-                  <SelectItem value="VVS2">VVS2</SelectItem>
-                  <SelectItem value="VS1">VS1</SelectItem>
-                  <SelectItem value="VS2">VS2</SelectItem>
-                  <SelectItem value="SI1">SI1</SelectItem>
-                  <SelectItem value="SI2">SI2</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div>
-              <Label htmlFor="featured" className="font-medium">
-                Destacado
-              </Label>
-              <p className="text-sm text-muted-foreground">Aparecerá en la página principal</p>
-            </div>
-            <Switch id="featured" checked={featured} onCheckedChange={setFeatured} />
+          <div className="space-y-2">
+            <Label htmlFor="diamond_points">Puntos diamante *</Label>
+            <Input
+              id="diamond_points"
+              name="diamond_points"
+              type="number"
+              step="0.01"
+              defaultValue={ring?.diamond_points}
+              placeholder="5"
+              required
+            />
           </div>
 
           <div className="flex items-center justify-between p-4 border rounded-lg">

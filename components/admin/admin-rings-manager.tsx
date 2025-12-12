@@ -197,7 +197,7 @@ export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
               }`}
             >
               {/* Thumbnail */}
-              <div className="relative h-32 w-full sm:h-24 sm:w-24 rounded overflow-hidden bg-muted flex-shrink-0">
+              <div className="relative h-12 w-12 sm:h-10 sm:w-10 rounded overflow-hidden bg-muted flex-shrink-0">
                 <Image src={ring.image_url || "/placeholder.svg"} alt={ring.name} fill className="object-cover" />
               </div>
 
