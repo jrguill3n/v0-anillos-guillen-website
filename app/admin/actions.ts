@@ -150,14 +150,32 @@ export async function updateRing(id: string, formData: FormData) {
 export async function deleteRing(id: string) {
   const supabase = await createClient()
 
-  const { error } = await supabase.from("rings").delete().eq("id", id)
+  const { data: ring } = await supabase.from("rings").select("slug, code").eq("id", id).single()
+
+  console.log("[v0] Attempting to delete ring:", { id, slug: ring?.slug, code: ring?.code })
+
+  const { data, error, count } = await supabase.from("rings").delete().eq("id", id).select()
+
+  console.log("[v0] Delete result:", { success: !error, affectedRows: data?.length || 0, error })
 
   if (error) {
+    console.error("[v0] Delete error:", error)
     return { error: error.message }
+  }
+
+  if (!data || data.length === 0) {
+    console.error("[v0] Delete failed - no rows affected for id:", id)
+    return { error: "No se encontró el anillo para eliminar" }
   }
 
   revalidatePath("/admin/dashboard")
   revalidatePath("/catalogo")
+  if (ring?.slug) {
+    revalidatePath(`/catalogo/${ring.slug}`)
+    console.log("[v0] Revalidated paths including:", `/catalogo/${ring.slug}`)
+  }
+
+  console.log("[v0] Ring deleted successfully:", ring?.code)
   return { success: true }
 }
 

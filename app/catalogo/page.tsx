@@ -50,7 +50,8 @@ export const metadata: Metadata = {
   },
 }
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-static"
+export const revalidate = 3600
 
 type SortOption = "price_asc" | "price_desc" | "name_asc" | "name_desc"
 
