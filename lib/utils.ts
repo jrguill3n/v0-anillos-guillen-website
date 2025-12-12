@@ -5,21 +5,38 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatKarat(karat: string | null | undefined): string {
-  if (!karat) return "14k"
+/**
+ * Formats karat value to ensure uppercase K
+ * Example: "14k" -> "14K", "14" -> "14K", "14K" -> "14K"
+ */
+export function formatKarat(karat: string | number | null | undefined): string {
+  if (!karat) return "14K"
 
-  const karatStr = karat.toString().trim()
-  // Check if 'k' already exists (case-insensitive)
-  if (/k$/i.test(karatStr)) {
-    return karatStr
+  const karatStr = String(karat).trim()
+
+  // If it already has K/k, just uppercase it
+  if (karatStr.toLowerCase().includes("k")) {
+    return karatStr.replace(/k/i, "K")
   }
 
-  return `${karatStr}k`
+  // Otherwise append K
+  return `${karatStr}K`
 }
 
-export function formatGoldInfo(metalType: string | null | undefined, metalKarat: string | null | undefined): string {
-  const type = metalType || "amarillo"
-  const karat = formatKarat(metalKarat)
+/**
+ * Formats gold color and karat info consistently
+ * Example: ("blanco", "14") -> "Blanco 14K", ("Amarillo", "18k") -> "Amarillo 18K"
+ */
+export function formatGoldInfo(color: string | null | undefined, karat: string | number | null | undefined): string {
+  const defaultColor = "Amarillo"
+  const formattedKarat = formatKarat(karat)
 
-  return `${type} ${karat}`
+  if (!color) {
+    return `${defaultColor} ${formattedKarat}`
+  }
+
+  // Capitalize first letter of color
+  const capitalizedColor = color.charAt(0).toUpperCase() + color.slice(1).toLowerCase()
+
+  return `${capitalizedColor} ${formattedKarat}`
 }

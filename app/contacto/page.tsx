@@ -59,7 +59,7 @@ export default function ContactoPage() {
     priceRange: "$$$",
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Fernando de Magallanes No. 17-A int. 3 fracc. Costa Azul",
+      streetAddress: "Fernando de Magallanes No. 17-A int. 3 Fracc. Costa Azul",
       addressLocality: "Acapulco de Juárez",
       addressRegion: "Guerrero",
       postalCode: "39850",
@@ -115,7 +115,7 @@ export default function ContactoPage() {
                   <p className="text-muted-foreground leading-relaxed">
                     Fernando de Magallanes No. 17-A int. 3
                     <br />
-                    fracc. Costa Azul
+                    Fracc. Costa Azul
                     <br />
                     Acapulco de Juárez, Guerrero
                     <br />
@@ -130,8 +130,13 @@ export default function ContactoPage() {
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                     <Phone className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="mb-2 font-serif text-xl font-semibold">WhatsApp</h3>
+                  <h3 className="mb-2 font-serif text-xl font-semibold">Contacto</h3>
                   <div className="space-y-2 text-muted-foreground">
+                    <p>
+                      <a href="tel:7444480317" className="transition-colors hover:text-primary">
+                        📞 74 44 48 03 17
+                      </a>
+                    </p>
                     <p>
                       <a
                         href="https://wa.me/527444496769"
@@ -139,7 +144,7 @@ export default function ContactoPage() {
                         rel="noopener noreferrer"
                         className="transition-colors hover:text-primary"
                       >
-                        +52 74 44 49 67 69
+                        WhatsApp: +52 74 44 49 67 69
                       </a>
                     </p>
                   </div>
