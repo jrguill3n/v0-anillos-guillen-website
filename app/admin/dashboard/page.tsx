@@ -3,8 +3,7 @@ import { isAdminAuthenticated } from "@/lib/admin-auth"
 import { createClient } from "@/lib/supabase/server"
 import { logoutAdmin } from "../actions"
 import { Button } from "@/components/ui/button"
-import { RingsTable } from "@/components/admin/rings-table"
-import { RingFormDialog } from "@/components/admin/ring-form-dialog"
+import { AdminRingsManager } from "@/components/admin/admin-rings-manager"
 
 export default async function AdminDashboardPage() {
   const isAuthenticated = await isAdminAuthenticated()
@@ -22,34 +21,28 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-serif font-bold">Admin Panel</h1>
-            <p className="text-sm text-muted-foreground">Gestión de anillos</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button asChild variant="outline" size="sm">
-              <a href="/api/admin/generate-catalog-pdf" download>
-                Descargar Catálogo
-              </a>
-            </Button>
-            <form action={logoutAdmin}>
-              <Button variant="outline" size="sm">
-                Cerrar sesión
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-xl sm:text-2xl font-serif font-bold">Admin</h1>
+            <div className="flex items-center gap-2">
+              <Button asChild variant="outline" size="sm" className="hidden sm:flex bg-transparent">
+                <a href="/api/admin/generate-catalog-pdf" download>
+                  Descargar Catálogo
+                </a>
               </Button>
-            </form>
+              <form action={logoutAdmin}>
+                <Button variant="ghost" size="sm">
+                  Salir
+                </Button>
+              </form>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold">Catálogo de anillos</h2>
-          <RingFormDialog mode="create" />
-        </div>
-
-        <RingsTable rings={rings || []} />
+      <main className="container mx-auto px-4 py-6">
+        <AdminRingsManager initialRings={rings || []} />
       </main>
     </div>
   )

@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -41,15 +42,18 @@ type Ring = {
 type RingFormDialogProps = {
   mode: "create" | "edit"
   ring?: Ring
+  onSuccess?: (ring: Ring) => void
 }
 
-export function RingFormDialog({ mode, ring }: RingFormDialogProps) {
+export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
   const [open, setOpen] = useState(false)
   const [featured, setFeatured] = useState(ring?.featured ?? false)
   const [isActive, setIsActive] = useState(ring?.is_active ?? true)
   const [imageUrl, setImageUrl] = useState(ring?.image_url ?? "")
   const [imagePreview, setImagePreview] = useState(ring?.image_url ?? "")
   const [isUploading, setIsUploading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter()
   const { toast } = useToast()
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -93,11 +97,15 @@ export function RingFormDialog({ mode, ring }: RingFormDialogProps) {
   }
 
   async function handleSubmit(formData: FormData) {
+    setIsSubmitting(true)
+
     formData.set("featured", featured.toString())
     formData.set("is_active", isActive.toString())
     formData.set("image_url", imageUrl)
 
     const result = mode === "create" ? await createRing(formData) : await updateRing(ring!.id, formData)
+
+    setIsSubmitting(false)
 
     if (result.error) {
       toast({
@@ -110,7 +118,13 @@ export function RingFormDialog({ mode, ring }: RingFormDialogProps) {
         title: mode === "create" ? "Anillo creado" : "Anillo actualizado",
         description: `El anillo se ${mode === "create" ? "creó" : "actualizó"} correctamente`,
       })
+
+      if (onSuccess && result.ring) {
+        onSuccess(result.ring)
+      }
+
       setOpen(false)
+      router.refresh()
     }
   }
 
@@ -118,13 +132,15 @@ export function RingFormDialog({ mode, ring }: RingFormDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {mode === "create" ? (
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo anillo
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Nuevo anillo</span>
+            <span className="sm:hidden">Nuevo</span>
           </Button>
         ) : (
-          <Button variant="ghost" size="icon" title="Editar">
+          <Button variant="outline" size="sm" className="gap-2 bg-transparent">
             <Pencil className="h-4 w-4" />
+            <span className="hidden sm:inline">Editar</span>
           </Button>
         )}
       </DialogTrigger>
@@ -342,11 +358,11 @@ export function RingFormDialog({ mode, ring }: RingFormDialogProps) {
           </div>
 
           <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isUploading || !imageUrl}>
-              {mode === "create" ? "Crear anillo" : "Guardar cambios"}
+            <Button type="submit" disabled={isUploading || !imageUrl || isSubmitting}>
+              {isSubmitting ? "Guardando..." : mode === "create" ? "Crear anillo" : "Guardar cambios"}
             </Button>
           </div>
         </form>

@@ -101,10 +101,11 @@ export async function createRing(formData: FormData) {
     image_url: formData.get("image_url") as string,
     featured: formData.get("featured") === "true",
     is_active: formData.get("is_active") === "true",
+    slug: (formData.get("code") as string).toLowerCase().replace(/\s+/g, "-"),
     order_index: Number.parseInt(formData.get("order_index") as string) || 0,
   }
 
-  const { error } = await supabase.from("rings").insert([ring])
+  const { data, error } = await supabase.from("rings").insert([ring]).select().single()
 
   if (error) {
     return { error: error.message }
@@ -112,7 +113,7 @@ export async function createRing(formData: FormData) {
 
   revalidatePath("/admin/dashboard")
   revalidatePath("/catalogo")
-  return { success: true }
+  return { success: true, ring: data }
 }
 
 export async function updateRing(id: string, formData: FormData) {
@@ -132,9 +133,10 @@ export async function updateRing(id: string, formData: FormData) {
     image_url: formData.get("image_url") as string,
     featured: formData.get("featured") === "true",
     is_active: formData.get("is_active") === "true",
+    slug: (formData.get("code") as string).toLowerCase().replace(/\s+/g, "-"),
   }
 
-  const { error } = await supabase.from("rings").update(ring).eq("id", id)
+  const { data, error } = await supabase.from("rings").update(ring).eq("id", id).select().single()
 
   if (error) {
     return { error: error.message }
@@ -142,7 +144,7 @@ export async function updateRing(id: string, formData: FormData) {
 
   revalidatePath("/admin/dashboard")
   revalidatePath("/catalogo")
-  return { success: true }
+  return { success: true, ring: data }
 }
 
 export async function deleteRing(id: string) {
