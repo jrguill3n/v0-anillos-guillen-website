@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Metadata } from "next"
+import { formatGoldInfo, formatKarat } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
@@ -32,13 +33,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anillosguillen.com"
     const pageUrl = `${baseUrl}/catalogo/${ring.slug}`
 
-    const diamondInfo = safeDiamondPoints ? `${safeDiamondPoints} puntos` : "diamante"
-    const metalKarat = ring.metal_karat
-      ? ring.metal_karat.toString().toLowerCase().includes("k")
-        ? ring.metal_karat
-        : `${ring.metal_karat}k`
-      : "14k"
-    const metalInfo = ring.metal_color && ring.metal_karat ? `${ring.metal_color} ${metalKarat}` : "oro"
+    const diamondInfo = safeDiamondPoints ? `diamante natural de ${safeDiamondPoints} puntos` : "diamante natural"
+    const metalInfo = formatGoldInfo(ring.metal_color, ring.metal_karat)
 
     const description =
       ring.description ||
@@ -97,17 +93,12 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anillosguillen.com"
   const pageUrl = `${baseUrl}/catalogo/${ring.slug}`
-  const whatsappPhone = "5217441234567"
+  const whatsappPhone = "527444496769"
 
   const diamondInfo = safeDiamondPoints
-    ? `${safeDiamondPoints} puntos${ring.diamond_clarity ? `, ${ring.diamond_clarity}` : ""}${ring.diamond_color ? `, ${ring.diamond_color}` : ""}`
-    : "diamante"
-  const metalKarat = ring.metal_karat
-    ? ring.metal_karat.toString().toLowerCase().includes("k")
-      ? ring.metal_karat
-      : `${ring.metal_karat}k`
-    : "14k"
-  const metalInfo = ring.metal_color && ring.metal_karat ? `${ring.metal_color} ${metalKarat}` : "oro"
+    ? `diamante natural de ${safeDiamondPoints} puntos${ring.diamond_clarity ? `, ${ring.diamond_clarity}` : ""}${ring.diamond_color ? `, ${ring.diamond_color}` : ""}`
+    : "diamante natural"
+  const metalInfo = formatGoldInfo(ring.metal_color, ring.metal_karat)
 
   const whatsappMessage = encodeURIComponent(
     `Hola, me interesa este anillo de compromiso: ${safeCode}.\n\n` +
@@ -142,7 +133,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
       priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
       itemCondition: "https://schema.org/NewCondition",
     },
-    material: `${ring.metal_type || "oro"} ${ring.metal_color || ""} ${ring.metal_karat || ""}`.trim(),
+    material: `${ring.metal_type || "oro"} ${ring.metal_color || ""} ${formatKarat(ring.metal_karat)}`.trim(),
     additionalProperty: [
       safeDiamondPoints && {
         "@type": "PropertyValue",
@@ -204,7 +195,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
               <div className="mb-6 space-y-3 border-y border-border py-6">
                 {safeDiamondPoints && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Diamante:</span>
+                    <span className="text-muted-foreground">Diamante natural:</span>
                     <span className="font-medium">{safeDiamondPoints} puntos</span>
                   </div>
                 )}

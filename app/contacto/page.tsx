@@ -8,11 +8,11 @@ import Image from "next/image"
 export const metadata: Metadata = {
   title: "Contacto y Ubicación - Visítanos en Acapulco",
   description:
-    "Visita Anillos Guillén en Av. Costera Miguel Alemán, Acapulco. Contáctanos por WhatsApp: +52 744 688 7367. Horario: Lun-Vie 10:00-19:00, Sáb 10:00-15:00.",
+    "Visita Anillos Guillén en Fernando de Magallanes No. 17-A int. 3, Acapulco. Contáctanos por WhatsApp: +52 74 44 49 67 69. Previa Cita.",
   keywords: [
     "contacto Anillos Guillén",
     "joyería Acapulco ubicación",
-    "Av. Costera Miguel Alemán",
+    "Fernando de Magallanes",
     "WhatsApp joyería",
     "horario joyería Acapulco",
   ],
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Contacto y Ubicación - Anillos Guillén Acapulco",
     description:
-      "Visítanos en Av. Costera Miguel Alemán, Acapulco. Contáctanos por WhatsApp para cotizaciones personalizadas.",
+      "Visítanos en Fernando de Magallanes No. 17-A int. 3, Acapulco. Contáctanos por WhatsApp para cotizaciones personalizadas.",
     url: "/contacto",
     type: "website",
     images: [
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Contacto y Ubicación - Anillos Guillén Acapulco",
     description:
-      "Visítanos en Av. Costera Miguel Alemán, Acapulco. Contáctanos por WhatsApp para cotizaciones personalizadas.",
+      "Visítanos en Fernando de Magallanes No. 17-A int. 3, Acapulco. Contáctanos por WhatsApp para cotizaciones personalizadas.",
     images: ["/map-location-acapulco-mexico-street-view.jpg"],
   },
 }
@@ -51,15 +51,15 @@ export default function ContactoPage() {
     "@type": "JewelryStore",
     name: "Anillos Guillén",
     description:
-      "Joyería familiar especializada en anillos de compromiso con más de 20 años de experiencia en Acapulco",
+      "Joyería familiar especializada en anillos de compromiso con más de 35 años de experiencia en Acapulco",
     image: "https://anillosguillen.com/map-location-acapulco-mexico-street-view.jpg",
     url: "https://anillosguillen.com",
-    telephone: "+52-744-688-7367",
+    telephone: "+52-74-44-49-67-69",
     email: "ventas@anillosguillen.com",
     priceRange: "$$$",
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Av. Costera Miguel Alemán 123, Fracc. Costa Azul",
+      streetAddress: "Fernando de Magallanes No. 17-A int. 3 fracc. Costa Azul",
       addressLocality: "Acapulco de Juárez",
       addressRegion: "Guerrero",
       postalCode: "39850",
@@ -85,7 +85,7 @@ export default function ContactoPage() {
       },
     ],
     paymentAccepted: "Cash, Credit Card, Debit Card, Bank Transfer",
-    sameAs: ["https://wa.me/5217446887367", "https://www.facebook.com/anillos.guillen"],
+    sameAs: ["https://wa.me/527444496769", "https://www.facebook.com/anillos.guillen"],
   }
 
   return (
@@ -113,9 +113,9 @@ export default function ContactoPage() {
                   </div>
                   <h3 className="mb-2 font-serif text-xl font-semibold">Dirección</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    Av. Costera Miguel Alemán 123
+                    Fernando de Magallanes No. 17-A int. 3
                     <br />
-                    Fracc. Costa Azul
+                    fracc. Costa Azul
                     <br />
                     Acapulco de Juárez, Guerrero
                     <br />
@@ -134,12 +134,12 @@ export default function ContactoPage() {
                   <div className="space-y-2 text-muted-foreground">
                     <p>
                       <a
-                        href="https://wa.me/5217446887367"
+                        href="https://wa.me/527444496769"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="transition-colors hover:text-primary"
                       >
-                        +52 744 688 7367
+                        +52 74 44 49 67 69
                       </a>
                     </p>
                   </div>
@@ -169,6 +169,7 @@ export default function ContactoPage() {
                   </div>
                   <h3 className="mb-2 font-serif text-xl font-semibold">Horario</h3>
                   <div className="space-y-1 text-muted-foreground">
+                    <p className="font-semibold text-foreground">Previa Cita</p>
                     <p>Lunes a Viernes: 10:00 - 19:00</p>
                     <p>Sábados: 10:00 - 15:00</p>
                     <p>Domingos: Cerrado</p>
@@ -184,9 +185,8 @@ export default function ContactoPage() {
                   </div>
                   <h3 className="mb-2 font-serif text-xl font-semibold">Formas de Pago</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    Aceptamos efectivo, tarjetas de crédito y débito (Visa, Mastercard, American Express),
-                    transferencias bancarias y planes de financiamiento. Pregunta por nuestros planes de pago a meses
-                    sin intereses.
+                    Aceptamos transferencias, depósitos bancarios y pagos con Tarjeta de crédito a 6 meses sin
+                    intereses.
                   </p>
                 </CardContent>
               </Card>

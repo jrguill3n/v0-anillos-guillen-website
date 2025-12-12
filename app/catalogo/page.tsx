@@ -5,6 +5,7 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
+import { formatGoldInfo } from "@/lib/utils"
 
 export const metadata: Metadata = {
   title: "Catálogo de Anillos de Compromiso",
@@ -118,14 +119,7 @@ export default async function CatalogoPage() {
                         </p>
                         <div className="space-y-1 text-sm text-muted-foreground">
                           <p>Diamante: {ring.diamond_points || 0} puntos</p>
-                          <p>
-                            Oro: {ring.metal_color || "Amarillo"}{" "}
-                            {ring.metal_karat
-                              ? ring.metal_karat.toString().toLowerCase().includes("k")
-                                ? ring.metal_karat
-                                : `${ring.metal_karat}k`
-                              : "14k"}
-                          </p>
+                          <p>Oro: {formatGoldInfo(ring.metal_color, ring.metal_karat)}</p>
                         </div>
                       </CardContent>
                     </Card>

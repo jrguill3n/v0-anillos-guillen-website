@@ -8,7 +8,7 @@ import { Gem, Shield } from "lucide-react"
 export const metadata: Metadata = {
   title: "Anillos de Compromiso en Acapulco - Joyero de Confianza",
   description:
-    "Joyería familiar con más de 20 años de experiencia en Acapulco. Especialistas en anillos de compromiso con diamantes certificados. Es bueno tener en quién confiar.",
+    "Joyería familiar con más de 35 años de experiencia en Acapulco. Especialistas en anillos de compromiso con diamantes certificados. Es bueno tener en quién confiar.",
   keywords: [
     "anillos de compromiso Acapulco",
     "joyería Acapulco",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Anillos de Compromiso en Acapulco - Joyero de Confianza",
     description:
-      "Joyería familiar especializada en anillos de compromiso con más de 20 años de experiencia en Acapulco",
+      "Joyería familiar especializada en anillos de compromiso con más de 35 años de experiencia en Acapulco",
     url: "/",
     type: "website",
     images: [
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Anillos de Compromiso en Acapulco - Joyero de Confianza",
     description:
-      "Joyería familiar especializada en anillos de compromiso con más de 20 años de experiencia en Acapulco",
+      "Joyería familiar especializada en anillos de compromiso con más de 35 años de experiencia en Acapulco",
     images: ["/elegant-diamond-engagement-ring-on-silk-fabric.jpg"],
   },
 }
@@ -53,14 +53,14 @@ export default function HomePage() {
     "@type": "JewelryStore",
     name: "Anillos Guillén",
     description:
-      "Joyería familiar especializada en anillos de compromiso con más de 20 años de experiencia en Acapulco",
+      "Joyería familiar especializada en anillos de compromiso con más de 35 años de experiencia en Acapulco",
     image: "https://anillosguillen.com/elegant-diamond-engagement-ring-on-silk-fabric.jpg",
     url: "https://anillosguillen.com",
-    telephone: "+52-744-123-4567",
+    telephone: "+52-74-44-49-67-69",
     priceRange: "$$$",
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Av. Costera Miguel Alemán 123, Fracc. Costa Azul",
+      streetAddress: "Fernando de Magallanes No. 17-A int. 3 fracc. Costa Azul",
       addressLocality: "Acapulco de Juárez",
       addressRegion: "Guerrero",
       postalCode: "39850",
@@ -85,7 +85,7 @@ export default function HomePage() {
         closes: "15:00",
       },
     ],
-    sameAs: ["https://wa.me/5217441234567"],
+    sameAs: ["https://wa.me/527444496769"],
   }
 
   return (
@@ -117,7 +117,7 @@ export default function HomePage() {
               Es bueno tener en quién confiar
             </h1>
             <p className="mx-auto mb-10 max-w-2xl text-xl text-muted-foreground text-pretty leading-relaxed">
-              Creamos anillos de compromiso que simbolizan tu amor y confianza. Con más de 20 años de experiencia, somos
+              Creamos anillos de compromiso que simbolizan tu amor y confianza. Con más de 35 años de experiencia, somos
               tu aliado en el momento más importante.
             </p>
             <Button asChild size="lg" className="shadow-lg">
@@ -132,7 +132,7 @@ export default function HomePage() {
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="mb-8 font-serif text-4xl font-bold tracking-tight md:text-5xl">Quiénes somos</h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Somos una joyería familiar con más de 20 años de trayectoria en Acapulco, Guerrero. Nos especializamos
+                Somos una joyería familiar con más de 35 años de trayectoria en Acapulco, Guerrero. Nos especializamos
                 en anillos de compromiso, ofreciendo piezas únicas que combinan calidad excepcional con diseños
                 atemporales. Cada anillo que creamos lleva consigo nuestra pasión por la joyería y el compromiso de
                 ayudarte a elegir la pieza perfecta para ese momento especial.
@@ -159,7 +159,7 @@ export default function HomePage() {
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
                   La montadura es la estructura que sostiene el diamante. Fabricamos nuestras monturas en oro amarillo,
-                  blanco o rosa de 14k o 18k, garantizando durabilidad y elegancia. Cada diseño es cuidadosamente
+                  blanco o rosa de 14K o 18K, garantizando durabilidad y elegancia. Cada diseño es cuidadosamente
                   elaborado para realzar la belleza del diamante y adaptarse perfectamente a tu estilo personal.
                 </p>
               </div>

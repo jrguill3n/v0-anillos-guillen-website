@@ -8,7 +8,7 @@ export function Footer() {
           <div>
             <h3 className="mb-4 font-serif text-lg font-semibold">Anillos Guillén</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Joyería familiar especializada en anillos de compromiso desde hace más de 20 años en Acapulco.
+              Joyería familiar especializada en anillos de compromiso desde hace más de 35 años en Acapulco.
             </p>
           </div>
 
@@ -40,12 +40,12 @@ export function Footer() {
               <li>ventas@anillosguillen.com</li>
               <li>
                 <a
-                  href="https://wa.me/5217446887367"
+                  href="https://wa.me/527444496769"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="transition-colors hover:text-foreground"
                 >
-                  WhatsApp: +52 744 688 7367
+                  WhatsApp: +52 74 44 49 67 69
                 </a>
               </li>
               <li>
