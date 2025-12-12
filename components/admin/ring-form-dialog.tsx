@@ -63,7 +63,8 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
       setIsActive(ring.is_active ?? true)
       setImageUrl(ring.image_url ?? "")
       setImagePreview(ring.image_url ?? "")
-      setGoldKarat(ring.metal_karat ?? "")
+      const karat = ring.metal_karat || ""
+      setGoldKarat(karat.toLowerCase().includes("k") ? karat.toLowerCase() : karat ? `${karat}k` : "14k")
     } else if (!ring && open) {
       setFeatured(false)
       setIsActive(true)
@@ -156,7 +157,7 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
             <span className="sm:hidden">Nuevo</span>
           </Button>
         ) : (
-          <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+          <Button variant="outline" size="sm" className="gap-2 bg-transparent w-full sm:w-auto">
             <Pencil className="h-4 w-4" />
             <span className="hidden sm:inline">Editar</span>
           </Button>

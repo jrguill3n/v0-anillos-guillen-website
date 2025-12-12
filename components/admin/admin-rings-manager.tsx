@@ -192,19 +192,20 @@ export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
           {filteredAndSortedRings.map((ring) => (
             <div
               key={ring.id}
-              className={`flex flex-col sm:flex-row gap-4 p-4 bg-card border rounded-lg transition-opacity ${
+              className={`flex gap-4 p-4 bg-card border rounded-lg transition-opacity ${
                 deletingId === ring.id ? "opacity-50 pointer-events-none" : ""
               }`}
             >
-              {/* Thumbnail */}
-              <div className="relative h-12 w-12 sm:h-10 sm:w-10 rounded overflow-hidden bg-muted flex-shrink-0">
-                <Image src={ring.image_url || "/placeholder.svg"} alt={ring.name} fill className="object-cover" />
-              </div>
+              {/* Left side: Thumbnail + Info */}
+              <div className="flex gap-4 flex-1 min-w-0">
+                {/* Thumbnail */}
+                <div className="relative h-12 w-12 sm:h-10 sm:w-10 rounded overflow-hidden bg-muted flex-shrink-0">
+                  <Image src={ring.image_url || "/placeholder.svg"} alt={ring.name} fill className="object-cover" />
+                </div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
+                {/* Info */}
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-semibold text-lg">{ring.code}</span>
                       {!ring.is_active && (
@@ -220,63 +221,60 @@ export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">{ring.name}</p>
                   </div>
-                </div>
 
-                <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
-                  <span className="font-semibold text-primary">${ring.price.toLocaleString("es-MX")}</span>
-                  <span className="text-muted-foreground">{ring.diamond_points} pts</span>
-                  <span className="text-muted-foreground">
-                    {ring.metal_color} {ring.metal_karat}
-                  </span>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
+                    <span className="font-semibold text-primary">${ring.price.toLocaleString("es-MX")}</span>
+                    <span className="text-muted-foreground">{ring.diamond_points} pts</span>
+                    <span className="text-muted-foreground">
+                      {ring.metal_color} {ring.metal_karat}
+                    </span>
+                  </div>
                 </div>
+              </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-1 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleToggleActive(ring)}
-                    disabled={togglingId === ring.id}
-                    className="gap-2"
-                  >
-                    {togglingId === ring.id ? (
+              <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1 flex-shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleToggleActive(ring)}
+                  disabled={togglingId === ring.id}
+                  className="gap-2 w-full sm:w-auto"
+                >
+                  {togglingId === ring.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : ring.is_active ? (
+                    <Eye className="h-4 w-4" />
+                  ) : (
+                    <EyeOff className="h-4 w-4" />
+                  )}
+                  <span className="hidden sm:inline">{ring.is_active ? "Activo" : "Inactivo"}</span>
+                </Button>
+
+                <RingFormDialog
+                  mode="edit"
+                  ring={ring}
+                  onSuccess={(updatedRing) => setRings((prev) => prev.map((r) => (r.id === ring.id ? updatedRing : r)))}
+                />
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openDeleteDialog(ring)}
+                  disabled={deletingId === ring.id}
+                  className="gap-2 text-destructive hover:text-destructive w-full sm:w-auto"
+                >
+                  {deletingId === ring.id ? (
+                    <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : ring.is_active ? (
-                      <Eye className="h-4 w-4" />
-                    ) : (
-                      <EyeOff className="h-4 w-4" />
-                    )}
-                    <span className="hidden sm:inline">{ring.is_active ? "Activo" : "Inactivo"}</span>
-                  </Button>
-
-                  <RingFormDialog
-                    mode="edit"
-                    ring={ring}
-                    onSuccess={(updatedRing) =>
-                      setRings((prev) => prev.map((r) => (r.id === ring.id ? updatedRing : r)))
-                    }
-                  />
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openDeleteDialog(ring)}
-                    disabled={deletingId === ring.id}
-                    className="gap-2 text-destructive hover:text-destructive"
-                  >
-                    {deletingId === ring.id ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="hidden sm:inline">Eliminando...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Trash2 className="h-4 w-4" />
-                        <span className="hidden sm:inline">Eliminar</span>
-                      </>
-                    )}
-                  </Button>
-                </div>
+                      <span className="hidden sm:inline">Eliminando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4" />
+                      <span className="hidden sm:inline">Eliminar</span>
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           ))}
