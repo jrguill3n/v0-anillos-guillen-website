@@ -99,13 +99,14 @@ export default async function LandingPage() {
 
           <div className="container relative z-10 mx-auto max-w-4xl px-6 py-20 text-center">
             <h1 className="mb-6 font-serif text-4xl font-bold tracking-tight text-balance md:text-6xl lg:text-7xl">
-              Anillos de compromiso hechos a tu medida
+              El anillo que cuenta tu historia
             </h1>
             <p className="mx-auto mb-10 max-w-2xl text-lg md:text-xl text-muted-foreground text-pretty leading-relaxed">
-              Explora nuestros diseños y encuentra el anillo perfecto para tu historia
+              Diseñamos cada anillo con dedicación, cuidando cada detalle para que sea tan único como tu momento
+              especial
             </p>
 
-            <p className="text-sm text-muted-foreground">Atención directa y envío a todo México</p>
+            <p className="text-sm text-muted-foreground">Más de 35 años de experiencia · Envío a todo México</p>
           </div>
         </section>
 
@@ -119,8 +120,8 @@ export default async function LandingPage() {
                     <Shield className="h-8 w-8 text-primary" />
                   </div>
                 </div>
-                <h3 className="mb-2 font-semibold text-lg">Más de 35 años de experiencia</h3>
-                <p className="text-sm text-muted-foreground">Joyería familiar de confianza</p>
+                <h3 className="mb-2 font-semibold text-lg">Experiencia de más de 35 años</h3>
+                <p className="text-sm text-muted-foreground">Tradición familiar en joyería fina</p>
               </div>
 
               <div className="text-center">
@@ -130,7 +131,7 @@ export default async function LandingPage() {
                   </div>
                 </div>
                 <h3 className="mb-2 font-semibold text-lg">Diseños personalizados</h3>
-                <p className="text-sm text-muted-foreground">Creamos el anillo perfecto para ti</p>
+                <p className="text-sm text-muted-foreground">Cada anillo refleja tu esencia</p>
               </div>
 
               <div className="text-center">
@@ -139,8 +140,8 @@ export default async function LandingPage() {
                     <Truck className="h-8 w-8 text-primary" />
                   </div>
                 </div>
-                <h3 className="mb-2 font-semibold text-lg">Envíos seguros a todo México</h3>
-                <p className="text-sm text-muted-foreground">Entrega garantizada</p>
+                <h3 className="mb-2 font-semibold text-lg">Envío seguro a todo México</h3>
+                <p className="text-sm text-muted-foreground">Con garantía y certificado</p>
               </div>
 
               <div className="text-center">
@@ -149,8 +150,8 @@ export default async function LandingPage() {
                     <User className="h-8 w-8 text-primary" />
                   </div>
                 </div>
-                <h3 className="mb-2 font-semibold text-lg">Atención directa con el joyero</h3>
-                <p className="text-sm text-muted-foreground">Asesoría personalizada</p>
+                <h3 className="mb-2 font-semibold text-lg">Atención personalizada</h3>
+                <p className="text-sm text-muted-foreground">Asesoría directa con el joyero</p>
               </div>
             </div>
           </div>
@@ -163,7 +164,7 @@ export default async function LandingPage() {
               Algunos de nuestros diseños
             </h2>
             <p className="mb-12 text-center text-muted-foreground">
-              Cada anillo es único y está elaborado con los más altos estándares de calidad
+              Cada pieza es elaborada con oro de 14K y diamante natural certificado
             </p>
 
             {rings.length > 0 ? (
@@ -221,7 +222,7 @@ export default async function LandingPage() {
           <div className="container mx-auto max-w-3xl px-6 text-center">
             <h2 className="mb-4 font-serif text-3xl md:text-4xl font-bold tracking-tight">¿Te gustó algún diseño?</h2>
             <p className="mb-8 text-lg text-muted-foreground leading-relaxed">
-              Podemos ayudarte a elegir el anillo ideal según tu estilo y presupuesto.
+              Con gusto te ayudamos a elegir el anillo ideal según tu estilo y presupuesto
             </p>
             <WhatsAppButton text="Hablar con un asesor" />
           </div>
@@ -230,9 +231,7 @@ export default async function LandingPage() {
         {/* How It Works */}
         <section className="py-16 md:py-24 bg-muted/20">
           <div className="container mx-auto max-w-4xl px-6">
-            <h2 className="mb-12 text-center font-serif text-3xl md:text-4xl font-bold tracking-tight">
-              ¿Cómo funciona?
-            </h2>
+            <h2 className="mb-12 text-center font-serif text-3xl md:text-4xl font-bold tracking-tight">El proceso</h2>
 
             <div className="space-y-8">
               <div className="flex gap-4 items-start">
@@ -240,9 +239,9 @@ export default async function LandingPage() {
                   1
                 </div>
                 <div>
-                  <h3 className="mb-2 font-semibold text-xl">Escríbenos por WhatsApp</h3>
+                  <h3 className="mb-2 font-semibold text-xl">Conversación inicial</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    Contáctanos directamente y cuéntanos qué estás buscando
+                    Nos cuentas tu visión y te asesoramos sobre las opciones disponibles
                   </p>
                 </div>
               </div>
@@ -252,9 +251,9 @@ export default async function LandingPage() {
                   2
                 </div>
                 <div>
-                  <h3 className="mb-2 font-semibold text-xl">Te asesoramos según tu estilo y presupuesto</h3>
+                  <h3 className="mb-2 font-semibold text-xl">Selección personalizada</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    Te ayudamos a elegir el diseño, diamante y oro perfectos para ti
+                    Te acompañamos en la elección del diseño, diamante y metal ideal para ti
                   </p>
                 </div>
               </div>
@@ -264,9 +263,9 @@ export default async function LandingPage() {
                   3
                 </div>
                 <div>
-                  <h3 className="mb-2 font-semibold text-xl">Diseñamos y fabricamos tu anillo</h3>
+                  <h3 className="mb-2 font-semibold text-xl">Elaboración artesanal</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    Creamos tu anillo con la más alta calidad y atención al detalle
+                    Diseñamos y fabricamos tu anillo con atención a cada detalle
                   </p>
                 </div>
               </div>
@@ -276,9 +275,9 @@ export default async function LandingPage() {
                   4
                 </div>
                 <div>
-                  <h3 className="mb-2 font-semibold text-xl">Envío seguro a tu domicilio</h3>
+                  <h3 className="mb-2 font-semibold text-xl">Entrega asegurada</h3>
                   <p className="text-muted-foreground leading-relaxed">
-                    Recibe tu anillo en cualquier parte de México con garantía y certificado
+                    Recibe tu anillo con certificado de autenticidad en cualquier parte de México
                   </p>
                 </div>
               </div>
@@ -290,7 +289,7 @@ export default async function LandingPage() {
         <section className="py-16 md:py-24">
           <div className="container mx-auto max-w-5xl px-6">
             <h2 className="mb-12 text-center font-serif text-3xl md:text-4xl font-bold tracking-tight">
-              Lo que dicen nuestros clientes
+              Historias de nuestros clientes
             </h2>
 
             <div className="grid gap-6 md:grid-cols-3">
@@ -351,13 +350,11 @@ export default async function LandingPage() {
         {/* Final CTA */}
         <section className="py-20 md:py-28 bg-primary/5">
           <div className="container mx-auto max-w-3xl px-6 text-center">
-            <h2 className="mb-6 font-serif text-3xl md:text-5xl font-bold tracking-tight">
-              ¿Listo para elegir el anillo ideal?
-            </h2>
+            <h2 className="mb-6 font-serif text-3xl md:text-5xl font-bold tracking-tight">Comienza tu historia</h2>
             <p className="mb-10 text-lg text-muted-foreground leading-relaxed">
-              Contáctanos por WhatsApp y te ayudamos a encontrar el anillo perfecto
+              Nos encantaría ayudarte a encontrar el anillo perfecto para este momento especial
             </p>
-            <WhatsAppButton text="Hablar por WhatsApp" />
+            <WhatsAppButton text="Hablar con un asesor" />
 
             <div className="mt-12 pt-8 border-t">
               <p className="text-sm text-muted-foreground mb-4">Más de 35 años creando momentos inolvidables</p>
@@ -365,7 +362,7 @@ export default async function LandingPage() {
                 <span>✓ Oro 14K con diamante natural</span>
                 <span>✓ Certificado de autenticidad</span>
                 <span>✓ Envío a todo México</span>
-                <span>✓ Atención personalizada</span>
+                <span>✓ Asesoría personalizada</span>
               </div>
             </div>
           </div>
