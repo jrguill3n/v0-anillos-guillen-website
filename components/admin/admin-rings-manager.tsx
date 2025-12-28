@@ -125,22 +125,39 @@ export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
     const result = await deleteRing(ringToDelete.id)
 
     if (result.error) {
-      if (result.error.includes("encontró") || result.error.includes("not found")) {
-        // Remove from UI since it doesn't exist anyway
+      // Handle "not found" gracefully - remove from UI
+      if (result.error === "NOT_FOUND") {
         setRings((prev) => prev.filter((r) => r.id !== ringToDelete.id))
         toast({
-          title: "Anillo ya eliminado",
+          title: "Actualizado",
           description: "Este anillo ya no existe, se actualizó la lista.",
         })
-      } else {
+        router.refresh()
+      } else if (result.error === "CONSTRAINT") {
+        // Foreign key constraint error
+        toast({
+          title: "No se pudo eliminar",
+          description: result.message || "No se pudo eliminar porque está relacionado con otros datos.",
+          variant: "destructive",
+        })
+      } else if (result.error === "VERIFY_FAILED") {
+        // Verification failed - ring still exists
         toast({
           title: "Error al eliminar",
-          description: result.error,
+          description: result.message || "No se pudo eliminar. Intenta de nuevo.",
+          variant: "destructive",
+        })
+      } else {
+        // Generic error
+        toast({
+          title: "Error al eliminar",
+          description: result.message || "Ocurrió un error al eliminar el anillo.",
           variant: "destructive",
         })
       }
       setDeletingId(null)
     } else {
+      // Success! Remove from UI immediately
       setRings((prev) => prev.filter((r) => r.id !== ringToDelete.id))
       toast({
         title: "Anillo eliminado",

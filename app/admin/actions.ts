@@ -158,16 +158,26 @@ export async function deleteRing(id: string) {
 
   console.log(`[v0] [${correlationId}] DELETE_RING: Starting deletion for ID:`, id)
 
-  // First, verify the ring exists and get its details
+  // Step 1: Verify the ring exists and get its details
   const { data: ring, error: fetchError } = await supabase
     .from("rings")
     .select("id, slug, code, name")
     .eq("id", id)
     .single()
 
-  if (fetchError || !ring) {
-    console.error(`[v0] [${correlationId}] DELETE_RING: Ring not found in DB`, { id, error: fetchError })
-    return { error: "No se encontró el anillo para eliminar" }
+  if (fetchError) {
+    if (fetchError.code === "PGRST116") {
+      // Not found - 404
+      console.log(`[v0] [${correlationId}] DELETE_RING: Ring not found (already deleted)`)
+      return { error: "NOT_FOUND", message: "Este anillo ya no existe" }
+    }
+    console.error(`[v0] [${correlationId}] DELETE_RING: Error fetching ring:`, fetchError)
+    return { error: "FETCH_ERROR", message: "Error al buscar el anillo" }
+  }
+
+  if (!ring) {
+    console.log(`[v0] [${correlationId}] DELETE_RING: Ring not found (null result)`)
+    return { error: "NOT_FOUND", message: "Este anillo ya no existe" }
   }
 
   console.log(`[v0] [${correlationId}] DELETE_RING: Ring found:`, {
@@ -177,29 +187,61 @@ export async function deleteRing(id: string) {
     slug: ring.slug,
   })
 
-  // Perform the delete operation
-  const { error: deleteError, count } = await supabase.from("rings").delete().eq("id", id)
+  // Step 2: Perform the delete operation using RPC for proper transaction
+  // We'll use a direct delete and check the count
+  const { error: deleteError, count } = await supabase.from("rings").delete({ count: "exact" }).eq("id", id)
 
   if (deleteError) {
-    console.error(`[v0] [${correlationId}] DELETE_RING: Delete failed:`, deleteError)
-    return { error: deleteError.message }
+    console.error(`[v0] [${correlationId}] DELETE_RING: Delete operation failed:`, deleteError)
+
+    // Check if it's a foreign key constraint error
+    if (deleteError.code === "23503") {
+      return {
+        error: "CONSTRAINT",
+        message: "No se pudo eliminar porque está relacionado con otros datos.",
+      }
+    }
+
+    return { error: "DELETE_ERROR", message: `Error al eliminar: ${deleteError.message}` }
   }
 
-  console.log(`[v0] [${correlationId}] DELETE_RING: Delete command executed, count:`, count)
+  console.log(`[v0] [${correlationId}] DELETE_RING: Delete executed, affected rows:`, count)
 
-  // Verify the ring is actually deleted
-  const { data: verifyRing, error: verifyError } = await supabase.from("rings").select("id").eq("id", id).maybeSingle()
+  // Step 3: Check affected rows count
+  if (count === 0) {
+    console.warn(`[v0] [${correlationId}] DELETE_RING: No rows were deleted (count = 0)`)
+    return { error: "NOT_FOUND", message: "Este anillo ya no existe" }
+  }
+
+  if (count !== 1) {
+    console.error(`[v0] [${correlationId}] DELETE_RING: Unexpected row count:`, count)
+  }
+
+  // Step 4: Verify the ring is gone (use a fresh query with no caching)
+  const { data: verifyRing, error: verifyError } = await supabase
+    .from("rings")
+    .select("id", { count: "exact" })
+    .eq("id", id)
+    .maybeSingle()
 
   if (verifyError) {
-    console.error(`[v0] [${correlationId}] DELETE_RING: Verification query failed:`, verifyError)
+    console.error(`[v0] [${correlationId}] DELETE_RING: Verification query error:`, verifyError)
+    // Don't fail the whole operation if verification fails
   } else if (verifyRing) {
-    console.error(`[v0] [${correlationId}] DELETE_RING: CRITICAL - Ring still exists after delete!`, verifyRing)
-    return { error: "Error al eliminar el anillo - el registro aún existe en la base de datos" }
+    // This is the critical error - ring still exists after delete!
+    console.error(`[v0] [${correlationId}] DELETE_RING: CRITICAL - Ring still exists after delete!`, {
+      id: verifyRing.id,
+      timestamp: new Date().toISOString(),
+    })
+    return {
+      error: "VERIFY_FAILED",
+      message: "No se pudo eliminar. Intenta de nuevo.",
+    }
   } else {
-    console.log(`[v0] [${correlationId}] DELETE_RING: Verified - Ring successfully deleted from DB`)
+    console.log(`[v0] [${correlationId}] DELETE_RING: Verified - Ring successfully deleted`)
   }
 
-  // Revalidate all relevant paths
+  // Step 5: Revalidate all relevant paths
   revalidateTag("rings")
   revalidatePath("/admin/dashboard")
   revalidatePath("/catalogo")
@@ -207,7 +249,7 @@ export async function deleteRing(id: string) {
     revalidatePath(`/catalogo/${ring.slug}`)
   }
 
-  console.log(`[v0] [${correlationId}] DELETE_RING: Complete - Revalidated all paths at`, new Date().toISOString())
+  console.log(`[v0] [${correlationId}] DELETE_RING: Complete - Deleted ${ring.code} at`, new Date().toISOString())
 
   return { success: true }
 }
