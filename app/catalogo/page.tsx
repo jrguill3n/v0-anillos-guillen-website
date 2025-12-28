@@ -53,7 +53,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-type SortOption = "price_asc" | "price_desc" | "name_asc" | "name_desc"
+type SortOption = "price_asc" | "price_desc"
 
 interface CatalogoPageProps {
   searchParams: Promise<{ sort?: string }>
@@ -77,12 +77,6 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
     switch (sortParam) {
       case "price_desc":
         query = query.order("price", { ascending: false })
-        break
-      case "name_asc":
-        query = query.order("code", { ascending: true })
-        break
-      case "name_desc":
-        query = query.order("code", { ascending: false })
         break
       case "price_asc":
       default:

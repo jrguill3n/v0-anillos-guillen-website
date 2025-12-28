@@ -179,7 +179,7 @@ export default async function LandingPage() {
                 <div className="grid gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-12">
                   {rings.map((ring) => (
                     <Link key={ring.id} href={`/catalogo/${ring.slug}`}>
-                      <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20">
+                      <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20 p-0 py-0">
                         <div className="aspect-square overflow-hidden bg-secondary relative">
                           <Image
                             src={ring.image_url || "/placeholder.svg?height=600&width=600"}
@@ -189,11 +189,13 @@ export default async function LandingPage() {
                             className="object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                         </div>
-                        <CardContent className="p-3 md:p-4">
-                          <p className="mb-1 text-xs font-medium text-muted-foreground">{ring.code}</p>
-                          <p className="text-sm md:text-base font-semibold text-primary">
-                            ${(ring.price || 0).toLocaleString("es-MX")} MXN
-                          </p>
+                        <CardContent className="p-0">
+                          <div className="p-3 md:p-4">
+                            <p className="mb-1 text-xs font-medium text-muted-foreground">{ring.code}</p>
+                            <p className="text-sm md:text-base font-semibold text-primary">
+                              ${(ring.price || 0).toLocaleString("es-MX")} MXN
+                            </p>
+                          </div>
                         </CardContent>
                       </Card>
                     </Link>

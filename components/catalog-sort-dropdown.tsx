@@ -3,7 +3,7 @@
 import { useRouter, usePathname } from "next/navigation"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-type SortOption = "price_asc" | "price_desc" | "name_asc" | "name_desc"
+type SortOption = "price_asc" | "price_desc"
 
 interface CatalogSortDropdownProps {
   currentSort: SortOption
@@ -12,8 +12,6 @@ interface CatalogSortDropdownProps {
 const sortOptions = [
   { value: "price_asc", label: "Precio: menor a mayor" },
   { value: "price_desc", label: "Precio: mayor a menor" },
-  { value: "name_asc", label: "Nombre: A-Z" },
-  { value: "name_desc", label: "Nombre: Z-A" },
 ]
 
 export function CatalogSortDropdown({ currentSort }: CatalogSortDropdownProps) {
