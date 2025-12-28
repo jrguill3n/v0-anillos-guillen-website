@@ -102,11 +102,15 @@ export default async function LandingPage() {
               Anillos de compromiso hechos a tu medida
             </h1>
             <p className="mx-auto mb-10 max-w-2xl text-lg md:text-xl text-muted-foreground text-pretty leading-relaxed">
-              Más de 35 años de experiencia creando anillos únicos con asesoría personalizada
+              Explora nuestros diseños y encuentra el anillo perfecto para tu historia
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-              <WhatsAppButton />
+              <Button asChild size="lg" className="shadow-lg text-lg px-8 py-6">
+                <a href="#catalog" className="flex items-center gap-2">
+                  Ver diseños
+                </a>
+              </Button>
             </div>
 
             <p className="text-sm text-muted-foreground">Atención directa y envío a todo México</p>
@@ -161,7 +165,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Product Showcase */}
-        <section className="py-16 md:py-24">
+        <section id="catalog" className="py-16 md:py-24">
           <div className="container mx-auto max-w-6xl px-6">
             <h2 className="mb-4 text-center font-serif text-3xl md:text-4xl font-bold tracking-tight">
               Algunos de nuestros diseños
