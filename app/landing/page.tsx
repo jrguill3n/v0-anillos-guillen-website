@@ -224,6 +224,17 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* Transition Section */}
+        <section className="py-16 md:py-20 bg-gradient-to-b from-background to-muted/20">
+          <div className="container mx-auto max-w-3xl px-6 text-center">
+            <h2 className="mb-4 font-serif text-3xl md:text-4xl font-bold tracking-tight">¿Te gustó algún diseño?</h2>
+            <p className="mb-8 text-lg text-muted-foreground leading-relaxed">
+              Podemos ayudarte a elegir el anillo ideal según tu estilo y presupuesto.
+            </p>
+            <WhatsAppButton text="Hablar con un asesor" />
+          </div>
+        </section>
+
         {/* How It Works */}
         <section className="py-16 md:py-24 bg-muted/20">
           <div className="container mx-auto max-w-4xl px-6">
