@@ -105,14 +105,6 @@ export default async function LandingPage() {
               Explora nuestros diseños y encuentra el anillo perfecto para tu historia
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-              <Button asChild size="lg" className="shadow-lg text-lg px-8 py-6">
-                <a href="#catalog" className="flex items-center gap-2">
-                  Ver diseños
-                </a>
-              </Button>
-            </div>
-
             <p className="text-sm text-muted-foreground">Atención directa y envío a todo México</p>
           </div>
         </section>
