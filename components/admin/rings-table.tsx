@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import {
   DndContext,
@@ -199,6 +199,15 @@ function SortableRingRow({ ring }: { ring: Ring }) {
 export function RingsTable({ rings }: { rings: Ring[] }) {
   const [items, setItems] = useState(rings)
   const { toast } = useToast()
+  
+  // Keep a ref to the latest rings prop for reverting on error
+  const ringsRef = useRef(rings)
+  
+  // Sync internal state when rings prop changes (full replacement)
+  useEffect(() => {
+    ringsRef.current = rings
+    setItems(rings)
+  }, [rings])
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -230,8 +239,8 @@ export function RingsTable({ rings }: { rings: Ring[] }) {
           description: "No se pudo actualizar el orden",
           variant: "destructive",
         })
-        // Revert the order
-        setItems(rings)
+        // Revert the order using the ref (always has latest prop value)
+        setItems(ringsRef.current)
       }
     }
   }
