@@ -54,15 +54,6 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
   const { toast } = useToast()
   const router = useRouter()
 
-  // TEMPORARY DEBUG: Check what we receive
-  console.log("[v0] AdminRingsListServer received initialRings:", {
-    count: initialRings.length,
-    codes: initialRings.slice(0, 10).map(r => r.code),
-    ids: initialRings.slice(0, 10).map(r => r.id.slice(0, 8)),
-    has2322: initialRings.some(r => r.code === "Anillo 2322"),
-    countOf2322: initialRings.filter(r => r.code === "Anillo 2322").length,
-  })
-
   // Derive filtered/sorted list ONLY from initialRings prop (no mirrored state)
   const filteredAndSortedRings = (() => {
     let filtered = initialRings
@@ -93,16 +84,6 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
         sorted.sort((a, b) => b.name.localeCompare(a.name))
         break
     }
-    
-    // TEMPORARY DEBUG: Check after sorting
-    console.log("[v0] filteredAndSortedRings after sort:", {
-      count: sorted.length,
-      codes: sorted.slice(0, 10).map(r => r.code),
-      countOf2322: sorted.filter(r => r.code === "Anillo 2322").length,
-      allIndicesOf2322: sorted
-        .map((r, i) => r.code === "Anillo 2322" ? i : -1)
-        .filter(i => i !== -1),
-    })
     
     return sorted
   })()
@@ -207,6 +188,10 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
     setRingToDelete(null)
   }
 
+    setDeletingId(null)
+    setRingToDelete(null)
+  }
+
   return (
     <div className="space-y-4">
       {/* Search and controls bar */}
@@ -287,11 +272,6 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">{ring.name}</p>
-                    
-                    {/* TEMPORARY DEBUG: Show id and slug */}
-                    <div className="text-xs text-amber-600 bg-amber-50 p-1 rounded mt-1 font-mono">
-                      id: {ring.id.slice(0, 12)}... | slug: {ring.slug}
-                    </div>
                   </div>
 
                   <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
@@ -362,20 +342,11 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
               Esta acción no se puede deshacer. El anillo {ringToDelete?.code} será eliminado permanentemente del
               catálogo.
             </AlertDialogDescription>
-            {/* TEMPORARY DEBUG: Show IDs */}
-            <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded mt-2 font-mono">
-              id: {ringToDelete?.id}<br/>
-              slug: {ringToDelete?.slug}<br/>
-              code: {ringToDelete?.code}
-            </div>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex gap-2">
+          <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <Button variant="outline" size="sm" onClick={handleDeleteByExactId} className="text-orange-600">
-              Debug: Por ID exacto
-            </Button>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-              Eliminar (Normal)
+              Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
