@@ -54,6 +54,15 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
   const { toast } = useToast()
   const router = useRouter()
 
+  // TEMPORARY DEBUG: Check what we receive
+  console.log("[v0] AdminRingsListServer received initialRings:", {
+    count: initialRings.length,
+    codes: initialRings.slice(0, 10).map(r => r.code),
+    ids: initialRings.slice(0, 10).map(r => r.id.slice(0, 8)),
+    has2322: initialRings.some(r => r.code === "Anillo 2322"),
+    countOf2322: initialRings.filter(r => r.code === "Anillo 2322").length,
+  })
+
   // Derive filtered/sorted list ONLY from initialRings prop (no mirrored state)
   const filteredAndSortedRings = (() => {
     let filtered = initialRings
@@ -84,6 +93,17 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
         sorted.sort((a, b) => b.name.localeCompare(a.name))
         break
     }
+    
+    // TEMPORARY DEBUG: Check after sorting
+    console.log("[v0] filteredAndSortedRings after sort:", {
+      count: sorted.length,
+      codes: sorted.slice(0, 10).map(r => r.code),
+      countOf2322: sorted.filter(r => r.code === "Anillo 2322").length,
+      allIndicesOf2322: sorted
+        .map((r, i) => r.code === "Anillo 2322" ? i : -1)
+        .filter(i => i !== -1),
+    })
+    
     return sorted
   })()
 
