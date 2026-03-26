@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import {
   DndContext,
@@ -79,11 +79,31 @@ function SortableRingRow({ ring }: { ring: Ring }) {
   async function handleDelete() {
     const result = await deleteRing(ring.id)
     if (result.error) {
-      toast({
-        title: "Error",
-        description: result.error,
-        variant: "destructive",
-      })
+      // Handle "not found" gracefully - this means ring was already deleted
+      if (result.error === "NOT_FOUND") {
+        toast({
+          title: "Actualizado",
+          description: "Este anillo ya no existía. La lista fue actualizada.",
+        })
+      } else if (result.error === "CONSTRAINT") {
+        toast({
+          title: "No se pudo eliminar",
+          description: result.message || "No se pudo eliminar porque está relacionado con otros datos.",
+          variant: "destructive",
+        })
+      } else if (result.error === "VERIFY_FAILED") {
+        toast({
+          title: "Error al eliminar",
+          description: result.message || "No se pudo eliminar. Intenta de nuevo.",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: result.message || result.error,
+          variant: "destructive",
+        })
+      }
     } else {
       toast({
         title: "Anillo eliminado",
@@ -179,6 +199,15 @@ function SortableRingRow({ ring }: { ring: Ring }) {
 export function RingsTable({ rings }: { rings: Ring[] }) {
   const [items, setItems] = useState(rings)
   const { toast } = useToast()
+  
+  // Keep a ref to the latest rings prop for reverting on error
+  const ringsRef = useRef(rings)
+  
+  // Sync internal state when rings prop changes (full replacement)
+  useEffect(() => {
+    ringsRef.current = rings
+    setItems(rings)
+  }, [rings])
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -210,8 +239,8 @@ export function RingsTable({ rings }: { rings: Ring[] }) {
           description: "No se pudo actualizar el orden",
           variant: "destructive",
         })
-        // Revert the order
-        setItems(rings)
+        // Revert the order using the ref (always has latest prop value)
+        setItems(ringsRef.current)
       }
     }
   }
