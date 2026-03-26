@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -43,7 +43,8 @@ type Ring = {
 type SortOption = "price_asc" | "price_desc" | "name_asc" | "name_desc"
 
 export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
-  const [rings, setRings] = useState(initialRings)
+  // Initialize with prop value, then sync when prop changes
+  const [rings, setRings] = useState<Ring[]>(initialRings)
   const [searchQuery, setSearchQuery] = useState("")
   const [sortOption, setSortOption] = useState<SortOption>("price_asc")
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -52,6 +53,19 @@ export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
   const [ringToDelete, setRingToDelete] = useState<Ring | null>(null)
   const [isRefetching, setIsRefetching] = useState(false)
   const { toast } = useToast()
+  
+  // Track prop changes to detect when server sends new data
+  const prevInitialRingsRef = useRef<string>(initialRings.map(r => r.id).sort().join(","))
+  
+  // CRITICAL: Sync state when initialRings prop changes (full replacement, no merge)
+  // This ensures stale rows are removed when the server sends fresh data
+  useEffect(() => {
+    const newIds = initialRings.map(r => r.id).sort().join(",")
+    if (newIds !== prevInitialRingsRef.current) {
+      prevInitialRingsRef.current = newIds
+      setRings(initialRings)
+    }
+  }, [initialRings])
 
   // Filter and sort rings
   const filteredAndSortedRings = useMemo(() => {
