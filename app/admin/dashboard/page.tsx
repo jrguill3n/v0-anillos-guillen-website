@@ -3,9 +3,8 @@ import { isAdminAuthenticated } from "@/lib/admin-auth"
 import { createClient, logDbConnection } from "@/lib/supabase/server"
 import { logoutAdmin } from "../actions"
 import { Button } from "@/components/ui/button"
-import { AdminRingsManager } from "@/components/admin/admin-rings-manager"
-import { AdminDebugPanel } from "@/components/admin/admin-debug-panel"
 import { AdminRefreshButton } from "@/components/admin/admin-refresh-button"
+import { AdminRingsListServer } from "@/components/admin/admin-rings-list-server"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -20,7 +19,10 @@ export default async function AdminDashboardPage() {
   const correlationId = logDbConnection("LIST_ADMIN")
   const supabase = await createClient()
 
-  const { data: rings, error } = await supabase.from("rings").select("*").order("order_index", { ascending: true })
+  const { data: rings, error } = await supabase
+    .from("rings")
+    .select("*")
+    .order("order_index", { ascending: true })
 
   if (error) {
     console.error(`[v0] [${correlationId}] LIST_ADMIN: Error fetching rings:`, error)
@@ -45,7 +47,12 @@ export default async function AdminDashboardPage() {
 
   console.log(`[v0] [${correlationId}] LIST_ADMIN: Fetched ${rings?.length || 0} rings at ${timestamp}`)
 
-  const showDebug = process.env.ENABLE_DEBUG_UI === "true"
+  // TEMPORARY DEBUG: Log ring IDs for verification
+  if (rings && rings.length > 0) {
+    console.log(`[v0] [${correlationId}] Ring IDs (first 10):`, rings.slice(0, 10).map((r: any) => r.id).join(", "))
+    const has2322 = rings.some((r: any) => r.code === "Anillo 2322" || r.slug === "anillo-2322")
+    console.log(`[v0] [${correlationId}] Anillo 2322 in DB: ${has2322}`)
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -76,9 +83,15 @@ export default async function AdminDashboardPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        {showDebug && <AdminDebugPanel rings={rings || []} />}
+        {/* TEMPORARY DEBUG: Show data source */}
+        <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded text-xs text-amber-900">
+          <p>Rings from DB: {rings?.length || 0}</p>
+          <p>IDs: {rings?.slice(0, 10).map((r: any) => r.id.slice(0, 8)).join(", ") || "none"}</p>
+          <p>Codes: {rings?.slice(0, 10).map((r: any) => r.code).join(", ") || "none"}</p>
+        </div>
 
-        <AdminRingsManager initialRings={rings || []} />
+        {/* Server-rendered rings list - NO client-side state mirroring */}
+        <AdminRingsListServer rings={rings || []} />
       </main>
     </div>
   )

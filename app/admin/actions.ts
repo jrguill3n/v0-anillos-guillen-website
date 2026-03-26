@@ -285,8 +285,9 @@ export async function getAdminRings() {
     return { error: error.message, rings: [] }
   }
 
-  const ringIds = rings?.map((r: any) => `${r.code}(${r.id.slice(0, 8)})`).join(", ") || "none"
-  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetched ${rings?.length || 0} rings: ${ringIds}`)
+  // TEMPORARY: Check for Anillo 2322
+  const has2322 = rings?.some((r: any) => r.code === "Anillo 2322" || r.slug === "anillo-2322")
+  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetched ${rings?.length || 0} rings | Anillo 2322 exists: ${has2322}`)
 
   return { success: true, rings: rings || [] }
 }
@@ -311,8 +312,9 @@ export async function getPublicRings() {
     return { error: error.message, rings: [] }
   }
 
-  const ringCodes = rings?.map((r: any) => `${r.code}(${r.id.slice(0, 8)})`).join(", ") || "none"
-  console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Fetched ${rings?.length || 0} active rings: ${ringCodes}`)
+  // TEMPORARY: Check for Anillo 2322
+  const has2322 = rings?.some((r: any) => r.code === "Anillo 2322" || r.slug === "anillo-2322")
+  console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Fetched ${rings?.length || 0} active rings | Anillo 2322 exists: ${has2322}`)
 
   return { success: true, rings: rings || [] }
 }
