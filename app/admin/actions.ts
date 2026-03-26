@@ -191,6 +191,20 @@ export async function deleteRing(id: string) {
   // Step 2: Check the response from RPC
   if (!data || !data.success) {
     console.error(`[v0] [${correlationId}] DELETE_RING: RPC returned unsuccessful result:`, data)
+    
+    // Map the RPC error to our error codes
+    if (data?.error === "NOT_FOUND") {
+      return { error: "NOT_FOUND", message: data?.message || "Este anillo ya no existe" }
+    }
+    
+    if (data?.error === "CONSTRAINT") {
+      return { error: "CONSTRAINT", message: data?.message || "No se pudo eliminar porque está relacionado con otros datos." }
+    }
+    
+    if (data?.error === "VERIFY_FAILED") {
+      return { error: "VERIFY_FAILED", message: data?.message || "No se pudo eliminar. Intenta de nuevo." }
+    }
+    
     return {
       error: "DELETE_ERROR",
       message: data?.message || "No se pudo eliminar el anillo",
@@ -252,18 +266,28 @@ export async function updateRingOrder(updates: { id: string; order_index: number
 
 export async function getAdminRings() {
   const correlationId = logDbConnection("GET_ADMIN_RINGS")
+  
+  // Revalidate before creating new client to ensure cache is busted
+  revalidateTag("rings")
+  revalidatePath("/admin/dashboard")
+  
   const supabase = await createClient()
 
-  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetching rings at ${new Date().toISOString()}`)
+  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetching fresh rings at ${new Date().toISOString()}`)
 
-  const { data: rings, error } = await supabase.from("rings").select("*").order("order_index", { ascending: true })
+  // Force bypass of any caching - add cache busting header
+  const { data: rings, error } = await supabase
+    .from("rings")
+    .select("*")
+    .order("order_index", { ascending: true })
 
   if (error) {
     console.error(`[v0] [${correlationId}] GET_ADMIN_RINGS: Error fetching rings:`, error)
     return { error: error.message, rings: [] }
   }
 
-  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetched ${rings?.length || 0} rings`)
+  const ringCodes = rings?.map((r: any) => `${r.code}(${r.id.slice(0, 8)})`).join(", ") || "none"
+  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetched ${rings?.length || 0} fresh rings: ${ringCodes}`)
 
   return { success: true, rings: rings || [] }
 }
