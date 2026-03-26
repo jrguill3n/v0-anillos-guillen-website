@@ -47,11 +47,37 @@ export default async function AdminDashboardPage() {
 
   console.log(`[v0] [${correlationId}] LIST_ADMIN: Fetched ${rings?.length || 0} rings at ${timestamp}`)
 
-  // TEMPORARY DEBUG: Log ring IDs for verification
+  // TEMPORARY DEBUG: Log ring IDs for verification and check for duplicates
   if (rings && rings.length > 0) {
     console.log(`[v0] [${correlationId}] Ring IDs (first 10):`, rings.slice(0, 10).map((r: any) => r.id).join(", "))
     const has2322 = rings.some((r: any) => r.code === "Anillo 2322" || r.slug === "anillo-2322")
     console.log(`[v0] [${correlationId}] Anillo 2322 in DB: ${has2322}`)
+    
+    // Check for duplicate codes
+    const codes = rings.map((r: any) => r.code)
+    const codeFreq: Record<string, number> = {}
+    codes.forEach((code: string) => {
+      codeFreq[code] = (codeFreq[code] || 0) + 1
+    })
+    const duplicateCodes = Object.entries(codeFreq).filter(([_, count]) => count > 1)
+    if (duplicateCodes.length > 0) {
+      console.log(`[v0] [${correlationId}] DUPLICATE CODES DETECTED:`, duplicateCodes)
+      duplicateCodes.forEach(([code, count]) => {
+        const ringIds = rings.filter((r: any) => r.code === code).map((r: any) => r.id)
+        console.log(`[v0] [${correlationId}]   ${code} appears ${count} times with IDs:`, ringIds)
+      })
+    }
+    
+    // Check for duplicate slugs
+    const slugs = rings.map((r: any) => r.slug)
+    const slugFreq: Record<string, number> = {}
+    slugs.forEach((slug: string) => {
+      slugFreq[slug] = (slugFreq[slug] || 0) + 1
+    })
+    const duplicateSlugs = Object.entries(slugFreq).filter(([_, count]) => count > 1)
+    if (duplicateSlugs.length > 0) {
+      console.log(`[v0] [${correlationId}] DUPLICATE SLUGS DETECTED:`, duplicateSlugs)
+    }
   }
 
   return (

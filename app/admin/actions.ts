@@ -158,7 +158,36 @@ export async function deleteRing(id: string) {
 
   console.log(`[v0] [${correlationId}] DELETE_RING: Starting deletion for ID:`, id)
 
-  // Step 1: Call the atomic RPC function for transactional delete
+  // TEMPORARY DEBUG: Check for duplicates by code and slug
+  const { data: allRings } = await supabase.from("rings").select("id, code, slug")
+  const allCodes = allRings?.map((r: any) => r.code) || []
+  const allSlugs = allRings?.map((r: any) => r.slug) || []
+  
+  if (allRings && allRings.length > 0) {
+    const ringToDelete = allRings.find((r: any) => r.id === id)
+    if (ringToDelete) {
+      const codeDups = allRings.filter((r: any) => r.code === ringToDelete.code).map((r: any) => r.id)
+      const slugDups = allRings.filter((r: any) => r.slug === ringToDelete.slug).map((r: any) => r.id)
+      
+      console.log(`[v0] [${correlationId}] DELETE_RING: Duplicates:`, {
+        targetCode: ringToDelete.code,
+        codeDuplicates: codeDups,
+        targetSlug: ringToDelete.slug,
+        slugDuplicates: slugDups,
+      })
+    }
+  }
+
+  // Step 1: Query the ring before deletion
+  const { data: ringBefore } = await supabase
+    .from("rings")
+    .select("id, code, slug, name")
+    .eq("id", id)
+    .single()
+
+  console.log(`[v0] [${correlationId}] DELETE_RING: Ring before delete:`, ringBefore)
+
+  // Step 2: Call the atomic RPC function for transactional delete
   const { data, error: rpcError } = await supabase.rpc("delete_ring_atomic", {
     ring_id: id,
   })
@@ -188,7 +217,7 @@ export async function deleteRing(id: string) {
     return { error: "DELETE_ERROR", message: `Error al eliminar: ${rpcError.message}` }
   }
 
-  // Step 2: Check the response from RPC
+  // Step 3: Check the response from RPC
   if (!data || !data.success) {
     console.error(`[v0] [${correlationId}] DELETE_RING: RPC returned unsuccessful result:`, data)
     
@@ -211,13 +240,17 @@ export async function deleteRing(id: string) {
     }
   }
 
-  console.log(`[v0] [${correlationId}] DELETE_RING: Successfully deleted ring:`, {
-    code: data.code,
-    name: data.name,
-    slug: data.slug,
-  })
+  console.log(`[v0] [${correlationId}] DELETE_RING: RPC returned success:`, data)
 
-  // Step 3: Revalidate all relevant paths
+  // Step 4: TEMPORARY DEBUG - Check what remains with matching code/slug
+  const { data: remaining } = await supabase
+    .from("rings")
+    .select("id, code, slug")
+    .or(`code.eq.${ringBefore?.code},slug.eq.${ringBefore?.slug}`)
+
+  console.log(`[v0] [${correlationId}] DELETE_RING: Remaining rings with same code/slug:`, remaining)
+
+  // Step 5: Revalidate all relevant paths
   revalidateTag("rings")
   revalidatePath("/admin/dashboard")
   revalidatePath("/catalogo")

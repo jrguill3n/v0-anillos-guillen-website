@@ -160,6 +160,33 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
     setRingToDelete(null)
   }
 
+  async function handleDeleteByExactId() {
+    if (!ringToDelete) return
+
+    setDeletingId(ringToDelete.id)
+    setDeleteDialogOpen(false)
+
+    // For debugging: delete ONLY by exact ID, no other lookup
+    const result = await deleteRing(ringToDelete.id)
+
+    if (result.success || result.error === "NOT_FOUND") {
+      toast({
+        title: "Deletado por ID exacto",
+        description: `ID ${ringToDelete.id.slice(0, 12)}... fue removido`,
+      })
+      router.refresh()
+    } else {
+      toast({
+        title: "Error",
+        description: result.message || "No se pudo eliminar",
+        variant: "destructive",
+      })
+    }
+
+    setDeletingId(null)
+    setRingToDelete(null)
+  }
+
   return (
     <div className="space-y-4">
       {/* Search and controls bar */}
@@ -240,6 +267,11 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">{ring.name}</p>
+                    
+                    {/* TEMPORARY DEBUG: Show id and slug */}
+                    <div className="text-xs text-amber-600 bg-amber-50 p-1 rounded mt-1 font-mono">
+                      id: {ring.id.slice(0, 12)}... | slug: {ring.slug}
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
@@ -310,11 +342,20 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
               Esta acción no se puede deshacer. El anillo {ringToDelete?.code} será eliminado permanentemente del
               catálogo.
             </AlertDialogDescription>
+            {/* TEMPORARY DEBUG: Show IDs */}
+            <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded mt-2 font-mono">
+              id: {ringToDelete?.id}<br/>
+              slug: {ringToDelete?.slug}<br/>
+              code: {ringToDelete?.code}
+            </div>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex gap-2">
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <Button variant="outline" size="sm" onClick={handleDeleteByExactId} className="text-orange-600">
+              Debug: Por ID exacto
+            </Button>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-              Eliminar
+              Eliminar (Normal)
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
