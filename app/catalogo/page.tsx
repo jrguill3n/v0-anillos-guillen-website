@@ -71,7 +71,7 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
   try {
     const supabase = await createClient()
 
-    let query = supabase.from("rings").select("*")
+    let query = supabase.from("rings").select("*").eq("is_active", true)
 
     // Apply sorting based on the sort parameter
     switch (sortParam) {
@@ -121,11 +121,15 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
 
   return (
     <>
-      {/* <!-- rings_count: ${validRings.length} timestamp: ${new Date().toISOString()} --> */}
       <Navigation />
       <main className="min-h-screen">
         <section className="py-20">
           <div className="container mx-auto max-w-7xl px-6">
+            {/* DEBUG INFO */}
+            <div className="mb-8 p-3 bg-muted/50 rounded text-xs text-muted-foreground">
+              <p>Rows from DB: {validRings.length} | Fetched at: {new Date().toLocaleTimeString()} | First 5 slugs: {validRings.slice(0, 5).map(r => r.slug).join(", ") || "none"}</p>
+            </div>
+
             <div className="mb-16 text-center">
               <h1 className="mb-6 font-serif text-5xl font-bold tracking-tight md:text-6xl">Catálogo de Anillos</h1>
               <p className="mx-auto max-w-2xl text-lg text-muted-foreground leading-relaxed">

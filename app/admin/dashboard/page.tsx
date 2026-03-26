@@ -20,6 +20,22 @@ export default async function AdminDashboardPage() {
   const correlationId = logDbConnection("LIST_ADMIN")
   const supabase = await createClient()
 
+  // DEBUG: Check if Anillo 2322 exists in the database
+  const { data: check2322 } = await supabase
+    .from("rings")
+    .select("id, code, is_active, slug")
+    .or("slug.eq.anillo-2322,code.eq.Anillo 2322")
+    .single()
+
+  if (check2322) {
+    console.log(
+      `[v0] [${correlationId}] LIST_ADMIN: WARNING - Found Anillo 2322 in DB:`,
+      check2322,
+    )
+  } else {
+    console.log(`[v0] [${correlationId}] LIST_ADMIN: OK - Anillo 2322 NOT in DB`)
+  }
+
   const { data: rings, error } = await supabase.from("rings").select("*").order("order_index", { ascending: true })
 
   if (error) {
@@ -76,6 +92,12 @@ export default async function AdminDashboardPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
+        {/* DEBUG INFO */}
+        <div className="mb-6 p-3 bg-muted/50 rounded text-xs text-muted-foreground">
+          <p>Rows from DB: {rings?.length || 0} | Fetched at: {new Date().toLocaleTimeString()} | First 5 codes: {rings?.slice(0, 5).map((r: any) => r.code).join(", ") || "none"}</p>
+          {check2322 && <p className="text-destructive mt-1">⚠️ Anillo 2322 still exists: {check2322.is_active ? "ACTIVE" : "INACTIVE"}</p>}
+        </div>
+
         {showDebug && <AdminDebugPanel rings={rings || []} />}
 
         <AdminRingsManager initialRings={rings || []} />

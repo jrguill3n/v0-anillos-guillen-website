@@ -264,30 +264,28 @@ export async function updateRingOrder(updates: { id: string; order_index: number
   return { success: true }
 }
 
-export async function getAdminRings() {
-  const correlationId = logDbConnection("GET_ADMIN_RINGS")
-  
-  // Revalidate before creating new client to ensure cache is busted
+export async function getPublicRings() {
+  const correlationId = logDbConnection("GET_PUBLIC_RINGS")
   revalidateTag("rings")
-  revalidatePath("/admin/dashboard")
-  
+  revalidatePath("/catalogo")
+
   const supabase = await createClient()
 
-  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetching fresh rings at ${new Date().toISOString()}`)
+  console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Fetching active rings at ${new Date().toISOString()}`)
 
-  // Force bypass of any caching - add cache busting header
   const { data: rings, error } = await supabase
     .from("rings")
     .select("*")
-    .order("order_index", { ascending: true })
+    .eq("is_active", true)
+    .order("price", { ascending: true })
 
   if (error) {
-    console.error(`[v0] [${correlationId}] GET_ADMIN_RINGS: Error fetching rings:`, error)
+    console.error(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Error:`, error)
     return { error: error.message, rings: [] }
   }
 
   const ringCodes = rings?.map((r: any) => `${r.code}(${r.id.slice(0, 8)})`).join(", ") || "none"
-  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetched ${rings?.length || 0} fresh rings: ${ringCodes}`)
+  console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Fetched ${rings?.length || 0} active rings: ${ringCodes}`)
 
   return { success: true, rings: rings || [] }
 }

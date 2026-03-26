@@ -66,6 +66,7 @@ export default async function LandingPage() {
     const { data, error } = await supabase
       .from("rings")
       .select("id, slug, code, image_url, price, diamond_points, metal_color, metal_karat")
+      .eq("is_active", true)
       .order("price", { ascending: true })
       .limit(8)
 
