@@ -81,7 +81,7 @@ function SortableRingRow({ ring }: { ring: Ring }) {
     if (result.error) {
       toast({
         title: "Error",
-        description: result.error,
+        description: result.message || result.error,
         variant: "destructive",
       })
     } else {

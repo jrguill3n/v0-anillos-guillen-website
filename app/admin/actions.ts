@@ -158,98 +158,60 @@ export async function deleteRing(id: string) {
 
   console.log(`[v0] [${correlationId}] DELETE_RING: Starting deletion for ID:`, id)
 
-  // Step 1: Verify the ring exists and get its details
-  const { data: ring, error: fetchError } = await supabase
-    .from("rings")
-    .select("id, slug, code, name")
-    .eq("id", id)
-    .single()
-
-  if (fetchError) {
-    if (fetchError.code === "PGRST116") {
-      // Not found - 404
-      console.log(`[v0] [${correlationId}] DELETE_RING: Ring not found (already deleted)`)
-      return { error: "NOT_FOUND", message: "Este anillo ya no existe" }
-    }
-    console.error(`[v0] [${correlationId}] DELETE_RING: Error fetching ring:`, fetchError)
-    return { error: "FETCH_ERROR", message: "Error al buscar el anillo" }
-  }
-
-  if (!ring) {
-    console.log(`[v0] [${correlationId}] DELETE_RING: Ring not found (null result)`)
-    return { error: "NOT_FOUND", message: "Este anillo ya no existe" }
-  }
-
-  console.log(`[v0] [${correlationId}] DELETE_RING: Ring found:`, {
-    id: ring.id,
-    code: ring.code,
-    name: ring.name,
-    slug: ring.slug,
+  // Step 1: Call the atomic RPC function for transactional delete
+  const { data, error: rpcError } = await supabase.rpc("delete_ring_atomic", {
+    ring_id: id,
   })
 
-  // Step 2: Perform the delete operation using RPC for proper transaction
-  // We'll use a direct delete and check the count
-  const { error: deleteError, count } = await supabase.from("rings").delete({ count: "exact" }).eq("id", id)
+  if (rpcError) {
+    console.error(`[v0] [${correlationId}] DELETE_RING: RPC error:`, rpcError)
 
-  if (deleteError) {
-    console.error(`[v0] [${correlationId}] DELETE_RING: Delete operation failed:`, deleteError)
+    // Check specific error codes from the RPC function
+    if (rpcError.message && rpcError.message.includes("NOT_FOUND")) {
+      return { error: "NOT_FOUND", message: "Este anillo ya no existe" }
+    }
 
-    // Check if it's a foreign key constraint error
-    if (deleteError.code === "23503") {
+    if (rpcError.message && rpcError.message.includes("CONSTRAINT")) {
       return {
         error: "CONSTRAINT",
         message: "No se pudo eliminar porque está relacionado con otros datos.",
       }
     }
 
-    return { error: "DELETE_ERROR", message: `Error al eliminar: ${deleteError.message}` }
-  }
-
-  console.log(`[v0] [${correlationId}] DELETE_RING: Delete executed, affected rows:`, count)
-
-  // Step 3: Check affected rows count
-  if (count === 0) {
-    console.warn(`[v0] [${correlationId}] DELETE_RING: No rows were deleted (count = 0)`)
-    return { error: "NOT_FOUND", message: "Este anillo ya no existe" }
-  }
-
-  if (count !== 1) {
-    console.error(`[v0] [${correlationId}] DELETE_RING: Unexpected row count:`, count)
-  }
-
-  // Step 4: Verify the ring is gone (use a fresh query with no caching)
-  const { data: verifyRing, error: verifyError } = await supabase
-    .from("rings")
-    .select("id", { count: "exact" })
-    .eq("id", id)
-    .maybeSingle()
-
-  if (verifyError) {
-    console.error(`[v0] [${correlationId}] DELETE_RING: Verification query error:`, verifyError)
-    // Don't fail the whole operation if verification fails
-  } else if (verifyRing) {
-    // This is the critical error - ring still exists after delete!
-    console.error(`[v0] [${correlationId}] DELETE_RING: CRITICAL - Ring still exists after delete!`, {
-      id: verifyRing.id,
-      timestamp: new Date().toISOString(),
-    })
-    return {
-      error: "VERIFY_FAILED",
-      message: "No se pudo eliminar. Intenta de nuevo.",
+    if (rpcError.message && rpcError.message.includes("VERIFY_FAILED")) {
+      return {
+        error: "VERIFY_FAILED",
+        message: "No se pudo eliminar. Intenta de nuevo.",
+      }
     }
-  } else {
-    console.log(`[v0] [${correlationId}] DELETE_RING: Verified - Ring successfully deleted`)
+
+    return { error: "DELETE_ERROR", message: `Error al eliminar: ${rpcError.message}` }
   }
 
-  // Step 5: Revalidate all relevant paths
+  // Step 2: Check the response from RPC
+  if (!data || !data.success) {
+    console.error(`[v0] [${correlationId}] DELETE_RING: RPC returned unsuccessful result:`, data)
+    return {
+      error: "DELETE_ERROR",
+      message: data?.message || "No se pudo eliminar el anillo",
+    }
+  }
+
+  console.log(`[v0] [${correlationId}] DELETE_RING: Successfully deleted ring:`, {
+    code: data.code,
+    name: data.name,
+    slug: data.slug,
+  })
+
+  // Step 3: Revalidate all relevant paths
   revalidateTag("rings")
   revalidatePath("/admin/dashboard")
   revalidatePath("/catalogo")
-  if (ring.slug) {
-    revalidatePath(`/catalogo/${ring.slug}`)
+  if (data.slug) {
+    revalidatePath(`/catalogo/${data.slug}`)
   }
 
-  console.log(`[v0] [${correlationId}] DELETE_RING: Complete - Deleted ${ring.code} at`, new Date().toISOString())
+  console.log(`[v0] [${correlationId}] DELETE_RING: Complete - Deleted ${data.code} at`, new Date().toISOString())
 
   return { success: true }
 }
