@@ -79,11 +79,31 @@ function SortableRingRow({ ring }: { ring: Ring }) {
   async function handleDelete() {
     const result = await deleteRing(ring.id)
     if (result.error) {
-      toast({
-        title: "Error",
-        description: result.message || result.error,
-        variant: "destructive",
-      })
+      // Handle "not found" gracefully - this means ring was already deleted
+      if (result.error === "NOT_FOUND") {
+        toast({
+          title: "Actualizado",
+          description: "Este anillo ya no existía. La lista fue actualizada.",
+        })
+      } else if (result.error === "CONSTRAINT") {
+        toast({
+          title: "No se pudo eliminar",
+          description: result.message || "No se pudo eliminar porque está relacionado con otros datos.",
+          variant: "destructive",
+        })
+      } else if (result.error === "VERIFY_FAILED") {
+        toast({
+          title: "Error al eliminar",
+          description: result.message || "No se pudo eliminar. Intenta de nuevo.",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: result.message || result.error,
+          variant: "destructive",
+        })
+      }
     } else {
       toast({
         title: "Anillo eliminado",

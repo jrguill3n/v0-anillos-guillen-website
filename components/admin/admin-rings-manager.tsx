@@ -124,49 +124,50 @@ export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
 
     const result = await deleteRing(ringToDelete.id)
 
-    if (result.error) {
-      // Handle "not found" gracefully - remove from UI
+    // Handle both success and NOT_FOUND the same way in the UI
+    if (result.success || result.error === "NOT_FOUND") {
+      // Remove ring from UI immediately
+      setRings((prev) => prev.filter((r) => r.id !== ringToDelete.id))
+      
       if (result.error === "NOT_FOUND") {
-        setRings((prev) => prev.filter((r) => r.id !== ringToDelete.id))
+        // Ring was already deleted - just update the UI
         toast({
           title: "Actualizado",
-          description: "Este anillo ya no existe, se actualizó la lista.",
+          description: "Este anillo ya no existía. La lista fue actualizada.",
         })
-        router.refresh()
-      } else if (result.error === "CONSTRAINT") {
-        // Foreign key constraint error
+      } else {
+        // Successful deletion
+        toast({
+          title: "Anillo eliminado",
+          description: `${ringToDelete.code} se eliminó correctamente`,
+        })
+      }
+      
+      router.refresh()
+    } else if (result.error) {
+      // Handle other errors without removing from UI
+      if (result.error === "CONSTRAINT") {
         toast({
           title: "No se pudo eliminar",
           description: result.message || "No se pudo eliminar porque está relacionado con otros datos.",
           variant: "destructive",
         })
       } else if (result.error === "VERIFY_FAILED") {
-        // Verification failed - ring still exists
         toast({
           title: "Error al eliminar",
           description: result.message || "No se pudo eliminar. Intenta de nuevo.",
           variant: "destructive",
         })
       } else {
-        // Generic error
         toast({
           title: "Error al eliminar",
           description: result.message || "Ocurrió un error al eliminar el anillo.",
           variant: "destructive",
         })
       }
-      setDeletingId(null)
-    } else {
-      // Success! Remove from UI immediately
-      setRings((prev) => prev.filter((r) => r.id !== ringToDelete.id))
-      toast({
-        title: "Anillo eliminado",
-        description: `${ringToDelete.code} se eliminó correctamente`,
-      })
-      router.refresh()
-      setDeletingId(null)
     }
 
+    setDeletingId(null)
     setRingToDelete(null)
   }
 

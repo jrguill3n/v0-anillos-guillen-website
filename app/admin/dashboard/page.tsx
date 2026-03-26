@@ -5,6 +5,7 @@ import { logoutAdmin } from "../actions"
 import { Button } from "@/components/ui/button"
 import { AdminRingsManager } from "@/components/admin/admin-rings-manager"
 import { AdminDebugPanel } from "@/components/admin/admin-debug-panel"
+import { AdminRefreshButton } from "@/components/admin/admin-refresh-button"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -45,6 +46,7 @@ export default async function AdminDashboardPage() {
           <div className="flex items-center justify-between gap-3">
             <h1 className="text-xl sm:text-2xl font-serif font-bold">Admin</h1>
             <div className="flex items-center gap-2">
+              <AdminRefreshButton />
               <Button asChild variant="outline" size="sm" className="hidden sm:flex bg-transparent">
                 <a href="/api/admin/generate-catalog-pdf" download>
                   Descargar Catálogo
