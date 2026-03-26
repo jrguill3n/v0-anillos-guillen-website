@@ -249,3 +249,21 @@ export async function updateRingOrder(updates: { id: string; order_index: number
   revalidatePath("/catalogo")
   return { success: true }
 }
+
+export async function getAdminRings() {
+  const correlationId = logDbConnection("GET_ADMIN_RINGS")
+  const supabase = await createClient()
+
+  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetching rings at ${new Date().toISOString()}`)
+
+  const { data: rings, error } = await supabase.from("rings").select("*").order("order_index", { ascending: true })
+
+  if (error) {
+    console.error(`[v0] [${correlationId}] GET_ADMIN_RINGS: Error fetching rings:`, error)
+    return { error: error.message, rings: [] }
+  }
+
+  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetched ${rings?.length || 0} rings`)
+
+  return { success: true, rings: rings || [] }
+}
