@@ -229,6 +229,14 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-semibold text-lg">{ring.code}</span>
+                      {/* DEBUG: Show row identity */}
+                      <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded font-mono">
+                        id: {ring.id.slice(0, 8)}...
+                      </span>
+                      {/* DEBUG: Show slug */}
+                      <span className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-1 rounded font-mono">
+                        slug: {ring.slug}
+                      </span>
                       {!ring.is_active && (
                         <Badge variant="secondary" className="text-xs">
                           Inactivo

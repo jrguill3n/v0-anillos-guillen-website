@@ -10,6 +10,7 @@ import { ClearCatalogButton } from "@/components/admin/clear-catalog-button"
 import { DataSourceDebug } from "@/components/admin/data-source-debug"
 import { DiagnosticDialog } from "@/components/admin/diagnostic-dialog"
 import { DbComparisonPanel } from "@/components/admin/db-comparison-panel"
+import { RowIdentityDiagnostic } from "@/components/admin/row-identity-diagnostic"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -136,6 +137,11 @@ export default async function AdminDashboardPage() {
 
         <div className="flex gap-2 mb-6 justify-end">
           <DiagnosticDialog />
+        </div>
+
+        {/* Row Identity Diagnostic - Temporary Debug */}
+        <div className="mb-6">
+          <RowIdentityDiagnostic />
         </div>
 
         {rings && rings.length === 0 ? (

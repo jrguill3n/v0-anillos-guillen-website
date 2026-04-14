@@ -160,6 +160,44 @@ export async function deleteRing(id: string) {
   console.log(`[v0] [${correlationId}] DELETE_RING: DB Host: ${dbDiag.dbHost} | DB Name: ${dbDiag.dbName}`)
   console.log(`[v0] [${correlationId}] DELETE_RING: Starting deletion for ID:`, id)
 
+  // STEP 0: Pre-delete existence check
+  const { data: existingRing, error: checkError } = await supabase
+    .from("rings")
+    .select("id, code, slug")
+    .eq("id", id)
+    .single()
+
+  if (checkError || !existingRing) {
+    console.error(`[v0] [${correlationId}] DELETE_RING: Pre-check failed - ring not found with ID:`, id)
+    
+    // Check for duplicate codes/slugs to provide helpful diagnostic
+    let matchingCodeRows: any[] = []
+    let matchingSlugRows: any[] = []
+    
+    if (checkError && checkError.code === "PGRST116") {
+      // No rows found - try to find by code/slug if available
+      console.log(`[v0] [${correlationId}] DELETE_RING: Row not found. Checking for duplicates...`)
+    }
+    
+    return { 
+      error: "NOT_FOUND", 
+      message: "Este anillo ya no existe",
+      diagnostic: {
+        receivedId: id,
+        found: false,
+        checkError: checkError?.message,
+        matchingCodeRows: matchingCodeRows.length,
+        matchingSlugRows: matchingSlugRows.length,
+      }
+    }
+  }
+
+  console.log(`[v0] [${correlationId}] DELETE_RING: Pre-check passed. Ring exists:`, {
+    id: existingRing.id,
+    code: existingRing.code,
+    slug: existingRing.slug,
+  })
+
   // Get count BEFORE deletion
   const { count: countBefore } = await supabase
     .from("rings")
@@ -485,6 +523,74 @@ export async function diagnosticCatalog() {
   } catch (error) {
     console.error(`[v0] [${correlationId}] DIAGNOSTIC: Error:`, error)
     return { error: String(error) }
+  }
+}
+
+export async function checkRowIdentityIssues(ringCode?: string) {
+  const correlationId = logDbConnection("CHECK_ROW_IDENTITY")
+  const supabase = await createClient()
+
+  console.log(`[v0] [${correlationId}] CHECK_ROW_IDENTITY: Checking for duplicate codes/slugs...`)
+
+  // Get all rings
+  const { data: allRings, error } = await supabase.from("rings").select("id, code, slug")
+
+  if (error) {
+    console.error(`[v0] [${correlationId}] CHECK_ROW_IDENTITY: Error:`, error)
+    return { error: error.message }
+  }
+
+  // Build frequency maps
+  const codeFreq: Record<string, { id: string }[]> = {}
+  const slugFreq: Record<string, { id: string }[]> = {}
+
+  allRings?.forEach((ring: any) => {
+    if (!codeFreq[ring.code]) codeFreq[ring.code] = []
+    codeFreq[ring.code].push({ id: ring.id })
+
+    if (!slugFreq[ring.slug]) slugFreq[ring.slug] = []
+    slugFreq[ring.slug].push({ id: ring.id })
+  })
+
+  // Find duplicates
+  const duplicateCodes = Object.entries(codeFreq).filter(([_, rows]) => rows.length > 1)
+  const duplicateSlugs = Object.entries(slugFreq).filter(([_, rows]) => rows.length > 1)
+
+  console.log(`[v0] [${correlationId}] CHECK_ROW_IDENTITY: Found ${duplicateCodes.length} duplicate codes`)
+  console.log(`[v0] [${correlationId}] CHECK_ROW_IDENTITY: Found ${duplicateSlugs.length} duplicate slugs`)
+
+  // If specific code requested, find all rows with that code
+  let targetCodeRows: any[] = []
+  let targetSlugRows: any[] = []
+
+  if (ringCode) {
+    targetCodeRows = allRings?.filter((r: any) => r.code === ringCode) || []
+    const targetSlug = allRings?.find((r: any) => r.code === ringCode)?.slug
+    if (targetSlug) {
+      targetSlugRows = allRings?.filter((r: any) => r.slug === targetSlug) || []
+    }
+
+    console.log(`[v0] [${correlationId}] CHECK_ROW_IDENTITY: Rows with code "${ringCode}":`, targetCodeRows)
+    console.log(`[v0] [${correlationId}] CHECK_ROW_IDENTITY: Rows with slug "${targetSlug}":`, targetSlugRows)
+  }
+
+  return {
+    success: true,
+    totalRings: allRings?.length || 0,
+    duplicateCodesCount: duplicateCodes.length,
+    duplicateCodes: duplicateCodes.map(([code, rows]) => ({
+      code,
+      count: rows.length,
+      ids: rows.map((r) => r.id),
+    })),
+    duplicateSlugsCount: duplicateSlugs.length,
+    duplicateSlugs: duplicateSlugs.map(([slug, rows]) => ({
+      slug,
+      count: rows.length,
+      ids: rows.map((r) => r.id),
+    })),
+    targetCodeRows,
+    targetSlugRows,
   }
 }
 
