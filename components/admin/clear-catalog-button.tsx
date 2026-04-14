@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 type ClearCatalogButtonProps = {
-  onClear: () => Promise<{ success?: boolean; error?: string }>
+  onClear: () => Promise<{ success?: boolean; error?: string; deletedCount?: number }>
 }
 
 export function ClearCatalogButton({ onClear }: ClearCatalogButtonProps) {
@@ -29,14 +29,17 @@ export function ClearCatalogButton({ onClear }: ClearCatalogButtonProps) {
   async function handleClear() {
     setIsLoading(true)
     const result = await onClear()
-    setIsLoading(false)
-
+    
     if (result.success) {
+      // Close dialog first
+      setIsOpen(false)
+      
       toast({
         title: "Catálogo vaciado",
-        description: "Todos los anillos han sido eliminados",
+        description: `Se eliminaron ${result.deletedCount || 0} anillos`,
       })
-      setIsOpen(false)
+      
+      // Force full page refresh to ensure server re-renders with fresh data
       router.refresh()
     } else {
       toast({
@@ -45,6 +48,8 @@ export function ClearCatalogButton({ onClear }: ClearCatalogButtonProps) {
         variant: "destructive",
       })
     }
+    
+    setIsLoading(false)
   }
 
   return (
