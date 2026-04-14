@@ -100,7 +100,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
   const whatsappPhone = "527444496769"
 
   const diamondInfo = safeDiamondPoints
-    ? `diamante natural de ${safeDiamondPoints} puntos${ring.diamond_clarity ? `, ${ring.diamond_clarity}` : ""}${ring.diamond_color ? `, ${ring.diamond_color}` : ""}`
+    ? `diamante natural de ${safeDiamondPoints} puntos`
     : "diamante natural"
   const metalInfo = formatGoldInfo(ring.metal_color, ring.metal_karat)
 
@@ -152,16 +152,6 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
         name: "Diamante",
         value: `${safeDiamondPoints} puntos`,
       },
-      ring.diamond_clarity && {
-        "@type": "PropertyValue",
-        name: "Claridad",
-        value: ring.diamond_clarity,
-      },
-      ring.diamond_color && {
-        "@type": "PropertyValue",
-        name: "Color",
-        value: ring.diamond_color,
-      },
       (ring.metal_color || ring.metal_karat) && {
         "@type": "PropertyValue",
         name: "Oro",
@@ -209,18 +199,6 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Diamante:</span>
                     <span className="font-medium">{safeDiamondPoints} puntos</span>
-                  </div>
-                )}
-                {ring.diamond_clarity && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Claridad:</span>
-                    <span className="font-medium">{ring.diamond_clarity}</span>
-                  </div>
-                )}
-                {ring.diamond_color && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Color:</span>
-                    <span className="font-medium">{ring.diamond_color}</span>
                   </div>
                 )}
                 {(ring.metal_color || ring.metal_karat) && (

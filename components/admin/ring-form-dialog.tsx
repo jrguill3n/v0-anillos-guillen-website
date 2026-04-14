@@ -32,8 +32,6 @@ type Ring = {
   metal_karat: string
   metal_color: string
   diamond_points: number
-  diamond_color: string
-  diamond_clarity: string
   image_url: string
   featured: boolean
   is_active: boolean
