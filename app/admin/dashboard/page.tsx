@@ -1,13 +1,11 @@
 import { redirect } from "next/navigation"
 import { isAdminAuthenticated } from "@/lib/admin-auth"
 import { createClient, logDbConnection } from "@/lib/supabase/server"
-import { logoutAdmin, clearAllRings } from "../actions"
+import { logoutAdmin } from "../actions"
 import { Button } from "@/components/ui/button"
 import { AdminRefreshButton } from "@/components/admin/admin-refresh-button"
 import { AdminRingsListServer } from "@/components/admin/admin-rings-list-server"
 import { RingFormDialog } from "@/components/admin/ring-form-dialog"
-import { ClearCatalogButton } from "@/components/admin/clear-catalog-button"
-import { UnifiedDbDiagnostic } from "@/components/admin/unified-db-diagnostic"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -76,11 +74,6 @@ export default async function AdminDashboardPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        {/* Database Connection Status - Single Source of Truth */}
-        <div className="mb-6">
-          <UnifiedDbDiagnostic />
-        </div>
-
         {rings && rings.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="space-y-4 max-w-md">
@@ -95,10 +88,7 @@ export default async function AdminDashboardPage() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold">{rings?.length || 0} anillos en el catálogo</h2>
-              <div className="flex gap-2">
-                <RingFormDialog mode="create" />
-                <ClearCatalogButton onClear={clearAllRings} />
-              </div>
+              <RingFormDialog mode="create" />
             </div>
             <AdminRingsListServer rings={rings || []} />
           </div>
