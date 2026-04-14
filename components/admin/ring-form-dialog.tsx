@@ -149,15 +149,14 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {mode === "create" ? (
-          <Button className="gap-2 bg-slate-900 hover:bg-slate-800 h-10 px-4 sm:px-5">
+          <Button className="gap-2 bg-slate-900 hover:bg-slate-800 h-10 px-4 font-medium text-white">
             <Plus className="h-4 w-4" />
-            <span className="font-medium">Nuevo anillo</span>
+            <span>Nuevo anillo</span>
           </Button>
         ) : (
           <Button
             variant="outline"
-            size="sm"
-            className="h-8 px-2 bg-white border-slate-200 text-slate-700 hover:bg-slate-50 gap-1"
+            className="h-8 px-2 bg-white border-slate-200 text-slate-700 hover:bg-slate-50 gap-1 font-medium"
           >
             <Pencil className="h-3.5 w-3.5" />
           </Button>
