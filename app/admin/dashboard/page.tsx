@@ -1,12 +1,14 @@
 import { redirect } from "next/navigation"
 import { isAdminAuthenticated } from "@/lib/admin-auth"
 import { createClient, logDbConnection } from "@/lib/supabase/server"
-import { logoutAdmin, clearAllRings } from "../actions"
+import { logoutAdmin, clearAllRings, diagnosticCatalog } from "../actions"
 import { Button } from "@/components/ui/button"
 import { AdminRefreshButton } from "@/components/admin/admin-refresh-button"
 import { AdminRingsListServer } from "@/components/admin/admin-rings-list-server"
 import { RingFormDialog } from "@/components/admin/ring-form-dialog"
 import { ClearCatalogButton } from "@/components/admin/clear-catalog-button"
+import { DataSourceDebug } from "@/components/admin/data-source-debug"
+import { DiagnosticDialog } from "@/components/admin/diagnostic-dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -91,6 +93,19 @@ export default async function AdminDashboardPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
+        <DataSourceDebug
+          pageType="admin"
+          ringCount={rings?.length || 0}
+          firstCodes={(rings || []).slice(0, 5).map((r) => r.code)}
+          fetchedAt={timestamp}
+          dbHost={process.env.NEXT_PUBLIC_SUPABASE_URL?.split("//")[1]?.split(".")[0] || "supabase"}
+          rowsReturned={rings?.length || 0}
+        />
+
+        <div className="flex gap-2 mb-6 justify-end">
+          <DiagnosticDialog />
+        </div>
+
         {rings && rings.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="space-y-4 max-w-md">

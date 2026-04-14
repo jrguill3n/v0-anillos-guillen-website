@@ -315,7 +315,64 @@ export async function getPublicRings() {
   return { success: true, rings: rings || [] }
 }
 
-export async function clearAllRings() {
+export async function diagnosticCatalog() {
+  const correlationId = logDbConnection("DIAGNOSTIC_CATALOG")
+  const supabase = await createClient()
+
+  console.log(`[v0] [${correlationId}] DIAGNOSTIC: Starting catalog diagnostic...`)
+
+  try {
+    // 1. Get total count
+    const { count: totalCount } = await supabase
+      .from("rings")
+      .select("*", { count: "exact", head: true })
+
+    console.log(`[v0] [${correlationId}] DIAGNOSTIC: Total rings: ${totalCount}`)
+
+    // 2. Get active count
+    const { count: activeCount } = await supabase
+      .from("rings")
+      .select("*", { count: "exact", head: true })
+      .eq("is_active", true)
+
+    console.log(`[v0] [${correlationId}] DIAGNOSTIC: Active rings: ${activeCount}`)
+
+    // 3. Check for duplicate codes
+    const { data: allRings } = await supabase.from("rings").select("id, code, slug")
+
+    const codeFreq: Record<string, string[]> = {}
+    const slugFreq: Record<string, string[]> = {}
+
+    allRings?.forEach((ring: any) => {
+      if (!codeFreq[ring.code]) codeFreq[ring.code] = []
+      codeFreq[ring.code].push(ring.id)
+
+      if (!slugFreq[ring.slug]) slugFreq[ring.slug] = []
+      slugFreq[ring.slug].push(ring.id)
+    })
+
+    const duplicateCodes = Object.entries(codeFreq).filter(([_, ids]) => ids.length > 1)
+    const duplicateSlugs = Object.entries(slugFreq).filter(([_, ids]) => ids.length > 1)
+
+    console.log(`[v0] [${correlationId}] DIAGNOSTIC: Duplicate codes: ${duplicateCodes.length}`, duplicateCodes)
+    console.log(`[v0] [${correlationId}] DIAGNOSTIC: Duplicate slugs: ${duplicateSlugs.length}`, duplicateSlugs)
+
+    // 4. Check for specific ring
+    const has2322 = allRings?.some((r: any) => r.code === "Anillo 2322" || r.slug === "anillo-2322")
+    console.log(`[v0] [${correlationId}] DIAGNOSTIC: Anillo 2322 exists: ${has2322}`)
+
+    return {
+      totalCount,
+      activeCount,
+      duplicateCodes: duplicateCodes.map(([code, ids]) => ({ code, count: ids.length, ids })),
+      duplicateSlugs: duplicateSlugs.map(([slug, ids]) => ({ slug, count: ids.length, ids })),
+      has2322,
+    }
+  } catch (error) {
+    console.error(`[v0] [${correlationId}] DIAGNOSTIC: Error:`, error)
+    return { error: String(error) }
+  }
+}
   const correlationId = logDbConnection("CLEAR_ALL_RINGS")
   const supabase = await createClient()
 
