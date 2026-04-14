@@ -16,6 +16,26 @@ function logDbConnection(context: string) {
   return correlationId
 }
 
+function getDbDiagnostics() {
+  const supabaseUrl = process.env.SUPABASE_URL || ""
+  
+  // Extract host from URL (e.g., "wddpienokibwhcixzkxl.supabase.co")
+  const host = supabaseUrl ? new URL(supabaseUrl).host : "UNKNOWN"
+  
+  // Extract db name from host (first part before the dot)
+  const dbName = host.split(".")[0] || "UNKNOWN"
+  
+  // Mask the URL (show only first and last 4 chars of the host)
+  const maskedHost = host.length > 8 ? `${host.substring(0, 4)}...${host.substring(host.length - 4)}` : host
+  
+  return {
+    dbHost: host,
+    dbName: dbName,
+    maskedDbHost: maskedHost,
+    url: supabaseUrl,
+  }
+}
+
 export async function createClient() {
   const cookieStore = await cookies()
 
@@ -47,4 +67,4 @@ export async function createClient() {
   })
 }
 
-export { logDbConnection }
+export { logDbConnection, getDbDiagnostics }
