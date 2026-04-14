@@ -152,21 +152,6 @@ export async function updateRing(id: string, formData: FormData) {
   return { success: true, ring: data }
 }
 
-  const { data, error } = await supabase.from("rings").update(ring).eq("id", id).select().single()
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidateTag("rings")
-  revalidatePath("/admin/dashboard")
-  revalidatePath("/catalogo")
-  if (ring?.slug) {
-    revalidatePath(`/catalogo/${ring.slug}`)
-  }
-  return { success: true, ring: data }
-}
-
 export async function deleteRing(id: string) {
   const correlationId = logDbConnection("DELETE_RING")
   const supabase = await createClient()
