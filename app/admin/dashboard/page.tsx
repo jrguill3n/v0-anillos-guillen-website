@@ -49,23 +49,29 @@ export default async function AdminDashboardPage() {
   console.log(`[v0] [${correlationId}] LIST_ADMIN: Fetched ${rings?.length || 0} rings at ${timestamp}`)
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-xl sm:text-2xl font-serif font-bold">Admin</h1>
+    <div className="min-h-screen bg-white">
+      {/* Premium sticky header */}
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-sm supports-[backdrop-filter]:bg-white/90">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-5">
+          {/* Header content */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Title section */}
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-light tracking-tight">Admin</h1>
+              <p className="text-sm text-slate-500 mt-1">Gestiona tu catálogo de anillos</p>
             </div>
-            <div className="flex items-center gap-2">
-              <AdminRefreshButton />
+
+            {/* Actions - grid on mobile, row on desktop */}
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               <RingFormDialog mode="create" />
-              <Button asChild variant="outline" size="sm" className="hidden sm:flex bg-transparent">
+              <AdminRefreshButton />
+              <Button asChild variant="outline" size="sm" className="bg-white border-slate-200 hover:bg-slate-50">
                 <a href="/api/admin/generate-catalog-pdf" download="catalogo-anillos-guillen.pdf">
                   Descargar PDF
                 </a>
               </Button>
               <form action={logoutAdmin}>
-                <Button variant="ghost" size="sm">
+                <Button variant="outline" size="sm" className="bg-white border-slate-200 hover:bg-slate-50">
                   Salir
                 </Button>
               </form>
@@ -74,21 +80,22 @@ export default async function AdminDashboardPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6">
+      {/* Main content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {rings && rings.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="flex flex-col items-center justify-center py-20 sm:py-32 text-center">
             <div className="space-y-4 max-w-md">
-              <h2 className="text-2xl font-semibold">No hay anillos cargados</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-2xl sm:text-3xl font-light">No hay anillos cargados</h2>
+              <p className="text-slate-600">
                 Empieza agregando tu primer anillo manualmente desde el panel de administración.
               </p>
+              <div className="pt-4">
+                <RingFormDialog mode="create" />
+              </div>
             </div>
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">{rings?.length || 0} anillos en el catálogo</h2>
-            </div>
             <AdminRingsListServer rings={rings || []} />
           </div>
         )}
