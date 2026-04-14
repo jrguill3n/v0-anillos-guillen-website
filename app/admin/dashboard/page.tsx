@@ -58,9 +58,10 @@ export default async function AdminDashboardPage() {
             </div>
             <div className="flex items-center gap-2">
               <AdminRefreshButton />
+              <RingFormDialog mode="create" />
               <Button asChild variant="outline" size="sm" className="hidden sm:flex bg-transparent">
-                <a href="/api/admin/generate-catalog-pdf" download>
-                  Descargar Catálogo
+                <a href="/api/admin/generate-catalog-pdf" download="catalogo-anillos-guillen.pdf">
+                  Descargar PDF
                 </a>
               </Button>
               <form action={logoutAdmin}>
@@ -81,14 +82,12 @@ export default async function AdminDashboardPage() {
               <p className="text-muted-foreground">
                 Empieza agregando tu primer anillo manualmente desde el panel de administración.
               </p>
-              <RingFormDialog mode="create" />
             </div>
           </div>
         ) : (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold">{rings?.length || 0} anillos en el catálogo</h2>
-              <RingFormDialog mode="create" />
             </div>
             <AdminRingsListServer rings={rings || []} />
           </div>
