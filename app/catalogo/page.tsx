@@ -4,10 +4,9 @@ import type { Metadata } from "next"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
-import { createClient, logDbConnection, getDbDiagnostics } from "@/lib/supabase/server"
+import { createClient, logDbConnection } from "@/lib/supabase/server"
 import { formatGoldInfo } from "@/lib/utils"
 import { CatalogSortDropdown } from "@/components/catalog-sort-dropdown"
-import { DataSourceDebug } from "@/components/admin/data-source-debug"
 
 export const metadata: Metadata = {
   title: "Catálogo de Anillos de Compromiso",
@@ -65,7 +64,6 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
   const sortParam = (params.sort || "price_asc") as SortOption
 
   const correlationId = logDbConnection("LIST_CATALOG")
-  const dbDiag = getDbDiagnostics()
 
   let rings = []
   let error = null
@@ -73,7 +71,7 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
   try {
     const supabase = await createClient()
 
-    console.log(`[v0] [${correlationId}] LIST_CATALOG: DB Host: ${dbDiag.dbHost} | Port: ${dbDiag.dbPort} | Name: ${dbDiag.dbName}`)
+    console.log(`[v0] [${correlationId}] LIST_CATALOG: Fetched ${rings.length} rings at ${new Date().toISOString()}`)
 
     let query = supabase.from("rings").select("*").eq("is_active", true)
 
@@ -129,23 +127,11 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
       <main className="min-h-screen">
         <section className="py-20">
           <div className="container mx-auto max-w-7xl px-6">
-            <DataSourceDebug
-              pageType="catalog"
-              ringCount={validRings.length}
-              firstCodes={validRings.slice(0, 5).map((r) => r.code)}
-              fetchedAt={new Date().toLocaleTimeString("es-MX")}
-              dbDiagnostics={dbDiag}
-              rowsReturned={rings.length}
-            />
-
             <div className="mb-16 text-center">
               <h1 className="mb-6 font-serif text-5xl font-bold tracking-tight md:text-6xl">Catálogo de Anillos</h1>
               <p className="mx-auto max-w-2xl text-lg text-muted-foreground leading-relaxed">
                 Descubre nuestra colección de anillos de compromiso. Cada pieza es única y está elaborada con los más
                 altos estándares de calidad.
-              </p>
-              <p className="mt-4 text-xs text-muted-foreground">
-                Public rings: <span className="font-mono font-semibold">{validRings.length}</span>
               </p>
             </div>
 

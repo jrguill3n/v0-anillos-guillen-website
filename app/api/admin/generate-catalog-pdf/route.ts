@@ -12,7 +12,7 @@ export async function GET() {
 
     if (error) throw error
 
-    // Generate simple HTML for PDF conversion
+    // Generate HTML for PDF conversion
     const html = `
 <!DOCTYPE html>
 <html>
@@ -63,6 +63,12 @@ export async function GET() {
       )
       .join("")}
   </div>
+  <script>
+    // Automatically trigger print-to-PDF on page load
+    window.addEventListener('load', function() {
+      window.print();
+    });
+  </script>
 </body>
 </html>
     `
@@ -70,7 +76,7 @@ export async function GET() {
     return new NextResponse(html, {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
-        "Content-Disposition": 'attachment; filename="catalogo-anillos-guillen.html"',
+        "Content-Disposition": 'inline; filename="catalogo-anillos-guillen.html"',
       },
     })
   } catch (error) {
@@ -78,3 +84,4 @@ export async function GET() {
     return NextResponse.json({ error: "Failed to generate catalog" }, { status: 500 })
   }
 }
+
