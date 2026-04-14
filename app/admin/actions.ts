@@ -321,12 +321,35 @@ export async function clearAllRings() {
 
   console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Attempting to delete all rings...`)
 
-  // Delete all rings from the database
-  const { error } = await supabase.from("rings").delete().neq("id", "00000000-0000-0000-0000-000000000000")
+  // First get count for logging
+  const { count: beforeCount } = await supabase
+    .from("rings")
+    .select("*", { count: "exact", head: true })
+
+  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Found ${beforeCount} rings to delete`)
+
+  // Delete all rings - use gte on created_at to match all rows
+  const { error, count: deletedCount } = await supabase
+    .from("rings")
+    .delete({ count: "exact" })
+    .gte("created_at", "1970-01-01")
 
   if (error) {
     console.error(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Error:`, error)
     return { error: error.message }
+  }
+
+  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Deleted ${deletedCount} rings`)
+
+  // Verify deletion
+  const { count: afterCount } = await supabase
+    .from("rings")
+    .select("*", { count: "exact", head: true })
+
+  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Remaining rings: ${afterCount}`)
+
+  if (afterCount && afterCount > 0) {
+    console.error(`[v0] [${correlationId}] CLEAR_ALL_RINGS: WARNING - ${afterCount} rings still remain!`)
   }
 
   // Revalidate all relevant paths
@@ -334,7 +357,7 @@ export async function clearAllRings() {
   revalidatePath("/admin/dashboard")
   revalidatePath("/catalogo")
 
-  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Successfully cleared all rings at ${new Date().toISOString()}`)
+  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Complete at ${new Date().toISOString()}`)
 
-  return { success: true }
+  return { success: true, deletedCount: deletedCount || 0 }
 }
