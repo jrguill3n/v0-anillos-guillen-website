@@ -161,37 +161,6 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
     setRingToDelete(null)
   }
 
-  async function handleDeleteByExactId() {
-    if (!ringToDelete) return
-
-    setDeletingId(ringToDelete.id)
-    setDeleteDialogOpen(false)
-
-    // For debugging: delete ONLY by exact ID, no other lookup
-    const result = await deleteRing(ringToDelete.id)
-
-    if (result.success || result.error === "NOT_FOUND") {
-      toast({
-        title: "Deletado por ID exacto",
-        description: `ID ${ringToDelete.id.slice(0, 12)}... fue removido`,
-      })
-      router.refresh()
-    } else {
-      toast({
-        title: "Error",
-        description: result.message || "No se pudo eliminar",
-        variant: "destructive",
-      })
-    }
-
-    setDeletingId(null)
-    setRingToDelete(null)
-  }
-
-    setDeletingId(null)
-    setRingToDelete(null)
-  }
-
   return (
     <div className="space-y-4">
       {/* Search and controls bar */}
