@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { createClient, logDbConnection } from "@/lib/supabase/server"
 import { formatGoldInfo } from "@/lib/utils"
 import { CatalogSortDropdown } from "@/components/catalog-sort-dropdown"
+import { DataSourceDebug } from "@/components/admin/data-source-debug"
 
 export const metadata: Metadata = {
   title: "Catálogo de Anillos de Compromiso",
@@ -125,6 +126,15 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
       <main className="min-h-screen">
         <section className="py-20">
           <div className="container mx-auto max-w-7xl px-6">
+            <DataSourceDebug
+              pageType="catalog"
+              ringCount={validRings.length}
+              firstCodes={validRings.slice(0, 5).map((r) => r.code)}
+              fetchedAt={new Date().toLocaleTimeString("es-MX")}
+              dbHost={process.env.NEXT_PUBLIC_SUPABASE_URL?.split("//")[1]?.split(".")[0] || "supabase"}
+              rowsReturned={rings.length}
+            />
+
             <div className="mb-16 text-center">
               <h1 className="mb-6 font-serif text-5xl font-bold tracking-tight md:text-6xl">Catálogo de Anillos</h1>
               <p className="mx-auto max-w-2xl text-lg text-muted-foreground leading-relaxed">
