@@ -1,0 +1,22 @@
+# Anillos Guillén Robots Configuration
+# Allow all crawlers to index the site
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/admin
+Disallow: /*.json$
+Disallow: /admin/
+
+# Sitemap
+Sitemap: https://anillosguillen.com/sitemap.xml
+
+# Crawl delays for respect
+Crawl-delay: 0.5
+
+# User agents with specific rules
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: Googlebot
+Allow: /

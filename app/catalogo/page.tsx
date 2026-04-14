@@ -9,32 +9,35 @@ import { formatGoldInfo } from "@/lib/utils"
 import { CatalogSortDropdown } from "@/components/catalog-sort-dropdown"
 
 export const metadata: Metadata = {
-  title: "Catálogo de Anillos de Compromiso",
+  title: "Catálogo de Anillos de Compromiso | Anillos Guillén",
   description:
-    "Explora nuestra variedad de modelos de anillos de compromiso en oro amarillo, blanco y rosa. Diferentes puntos de diamante (50 a 120 puntos) y quilates de oro (14k y 18k). Encuentra el anillo perfecto.",
+    "Descubre nuestro catálogo de anillos de compromiso en oro amarillo, blanco y rosa de 14K y 18K con diamantes naturales. Diseños elegantes, atención personalizada y certificados de autenticidad en Acapulco.",
   keywords: [
+    "anillos de compromiso",
+    "anillos de compromiso Acapulco",
+    "anillos de oro",
+    "oro 14K",
+    "oro 18K",
+    "diamantes naturales",
+    "anillos de boda",
     "catálogo anillos",
-    "anillos de compromiso modelos",
-    "oro 14k",
-    "oro 18k",
-    "diamantes certificados",
-    "puntos diamante",
-    "oro amarillo",
-    "oro blanco",
-    "oro rosa",
+    "modelos anillos",
+    "anillos de diamante",
   ],
   alternates: {
-    canonical: "/catalogo",
+    canonical: "https://anillosguillen.com/catalogo",
   },
   openGraph: {
     title: "Catálogo de Anillos de Compromiso - Anillos Guillén",
     description:
-      "Explora nuestra variedad de modelos de anillos de compromiso en oro amarillo, blanco y rosa. Diferentes puntos de diamante y quilates de oro.",
-    url: "/catalogo",
+      "Explora nuestra colección completa de anillos de compromiso en oro de 14K y 18K con diamantes naturales certificados.",
+    url: "https://anillosguillen.com/catalogo",
     type: "website",
+    locale: "es_MX",
+    siteName: "Anillos Guillén",
     images: [
       {
-        url: "/white-gold-diamond-solitaire-engagement-ring.jpg",
+        url: "https://anillosguillen.com/white-gold-diamond-solitaire-engagement-ring.jpg",
         width: 1200,
         height: 630,
         alt: "Catálogo de anillos de compromiso - Anillos Guillén",
@@ -45,8 +48,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Catálogo de Anillos de Compromiso - Anillos Guillén",
     description:
-      "Explora nuestra variedad de modelos de anillos de compromiso en oro amarillo, blanco y rosa. Diferentes puntos de diamante y quilates de oro.",
-    images: ["/white-gold-diamond-solitaire-engagement-ring.jpg"],
+      "Descubre diseños elegantes de anillos de compromiso en oro con diamantes naturales certificados.",
+    images: ["https://anillosguillen.com/white-gold-diamond-solitaire-engagement-ring.jpg"],
   },
 }
 
@@ -123,15 +126,43 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: "Catálogo de Anillos de Compromiso",
+            description:
+              "Descubre nuestro catálogo de anillos de compromiso en oro de 14K y 18K con diamantes naturales certificados.",
+            url: "https://anillosguillen.com/catalogo",
+            publisher: {
+              "@type": "LocalBusiness",
+              name: "Anillos Guillén",
+              location: {
+                "@type": "Place",
+                address: {
+                  "@type": "PostalAddress",
+                  addressCountry: "MX",
+                  addressRegion: "Guerrero",
+                  addressLocality: "Acapulco",
+                },
+              },
+            },
+          }),
+        }}
+      />
       <Navigation />
       <main className="min-h-screen">
         <section className="py-20">
           <div className="container mx-auto max-w-7xl px-6">
             <div className="mb-16 text-center">
-              <h1 className="mb-6 font-serif text-5xl font-bold tracking-tight md:text-6xl">Catálogo de Anillos</h1>
+              <h1 className="mb-6 font-serif text-5xl font-bold tracking-tight md:text-6xl">
+                Catálogo de Anillos de Compromiso
+              </h1>
               <p className="mx-auto max-w-2xl text-lg text-muted-foreground leading-relaxed">
-                Descubre nuestra colección de anillos de compromiso. Cada pieza es única y está elaborada con los más
-                altos estándares de calidad.
+                Descubre nuestra colección de anillos de compromiso en oro de 14K y 18K con diamantes naturales
+                certificados. Cada pieza es única y está elaborada con los más altos estándares de calidad.
               </p>
             </div>
 
