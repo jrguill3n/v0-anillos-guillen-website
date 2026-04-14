@@ -1,10 +1,22 @@
 import { redirect } from "next/navigation"
 import { isAdminAuthenticated } from "@/lib/admin-auth"
 import { createClient, logDbConnection } from "@/lib/supabase/server"
-import { logoutAdmin } from "../actions"
+import { logoutAdmin, clearAllRings } from "../actions"
 import { Button } from "@/components/ui/button"
 import { AdminRefreshButton } from "@/components/admin/admin-refresh-button"
 import { AdminRingsListServer } from "@/components/admin/admin-rings-list-server"
+import { RingFormDialog } from "@/components/admin/ring-form-dialog"
+import { ClearCatalogButton } from "@/components/admin/clear-catalog-button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -54,9 +66,12 @@ export default async function AdminDashboardPage() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex flex-col gap-1">
               <h1 className="text-xl sm:text-2xl font-serif font-bold">Admin</h1>
-              <p className="text-xs text-muted-foreground">
-                Anillos: {rings?.length || 0} | Última carga: {timestamp}
-              </p>
+              <div className="flex items-center gap-3 flex-wrap">
+                <p className="text-xs text-muted-foreground">
+                  Rings in DB: <span className="font-mono font-semibold text-foreground">{rings?.length || 0}</span>
+                </p>
+                <p className="text-xs text-muted-foreground">Última carga: {timestamp}</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <AdminRefreshButton />
@@ -76,8 +91,28 @@ export default async function AdminDashboardPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
-        {/* Server-rendered rings list - NO client-side state mirroring */}
-        <AdminRingsListServer rings={rings || []} />
+        {rings && rings.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="space-y-4 max-w-md">
+              <h2 className="text-2xl font-semibold">No hay anillos cargados</h2>
+              <p className="text-muted-foreground">
+                Empieza agregando tu primer anillo manualmente desde el panel de administración.
+              </p>
+              <RingFormDialog mode="create" />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold">{rings?.length || 0} anillos en el catálogo</h2>
+              <div className="flex gap-2">
+                <RingFormDialog mode="create" />
+                <ClearCatalogButton onClear={clearAllRings} />
+              </div>
+            </div>
+            <AdminRingsListServer rings={rings || []} />
+          </div>
+        )}
       </main>
     </div>
   )

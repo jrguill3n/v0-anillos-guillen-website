@@ -136,7 +136,7 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
             {validRings.length === 0 ? (
               <div className="text-center py-20">
                 <p className="text-lg text-muted-foreground">
-                  Nuestro catálogo se está actualizando. Regresa pronto para ver nuestros diseños.
+                  Próximamente estaremos agregando nuevos modelos.
                 </p>
               </div>
             ) : (
