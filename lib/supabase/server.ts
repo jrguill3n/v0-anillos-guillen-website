@@ -9,7 +9,7 @@ function logDbConnection(context: string) {
   console.log(`[v0] [${correlationId}] [${context}] DB Connection:`, {
     host: dbHost,
     hasUrl: !!process.env.SUPABASE_URL,
-    hasKey: !!process.env.SUPABASE_ANON_KEY,
+    hasServiceRoleKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
     timestamp: new Date().toISOString(),
   })
 
@@ -18,7 +18,7 @@ function logDbConnection(context: string) {
 
 function getDbDiagnostics() {
   const supabaseUrl = process.env.SUPABASE_URL || ""
-  const supabaseKey = process.env.SUPABASE_ANON_KEY || ""
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ""
   
   try {
     const url = new URL(supabaseUrl)
@@ -34,9 +34,9 @@ function getDbDiagnostics() {
     // Extract the project reference from the hostname (first part)
     const projectRef = dbName
     
-    // Mask the anon key (show first 4 and last 4 chars)
-    const maskedKey = supabaseKey.length > 8 
-      ? `${supabaseKey.substring(0, 4)}...${supabaseKey.substring(supabaseKey.length - 4)}`
+    // Mask the service role key (show first 4 and last 4 chars)
+    const maskedKey = supabaseServiceRoleKey.length > 8 
+      ? `${supabaseServiceRoleKey.substring(0, 4)}...${supabaseServiceRoleKey.substring(supabaseServiceRoleKey.length - 4)}`
       : "***"
     
     return {
@@ -48,7 +48,7 @@ function getDbDiagnostics() {
       dbSchema: defaultSchema,
       url: supabaseUrl,
       maskedUrl: `https://${maskedHost}/rest/v1`,
-      anonKeyMasked: maskedKey,
+      serviceRoleKeyMasked: maskedKey,
       projectRef: projectRef,
     }
   } catch (e) {
@@ -62,7 +62,7 @@ function getDbDiagnostics() {
       dbSchema: "UNKNOWN",
       url: supabaseUrl,
       maskedUrl: "UNKNOWN",
-      anonKeyMasked: "???",
+      serviceRoleKeyMasked: "???",
       projectRef: "UNKNOWN",
     }
   }
@@ -72,16 +72,16 @@ export async function createClient() {
   const cookieStore = await cookies()
 
   const supabaseUrl = process.env.SUPABASE_URL
-  const supabaseKey = process.env.SUPABASE_ANON_KEY
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  if (!supabaseUrl || !supabaseKey) {
-    console.error("[v0] Missing Supabase environment variables!")
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    console.error("[v0] Missing Supabase environment variables! Required: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY")
     throw new Error("Missing Supabase environment variables")
   }
 
   logDbConnection("CREATE_CLIENT")
 
-  return createServerClient(supabaseUrl, supabaseKey, {
+  return createServerClient(supabaseUrl, supabaseServiceRoleKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
@@ -100,3 +100,4 @@ export async function createClient() {
 }
 
 export { logDbConnection, getDbDiagnostics }
+

@@ -11,6 +11,7 @@ import { DataSourceDebug } from "@/components/admin/data-source-debug"
 import { DiagnosticDialog } from "@/components/admin/diagnostic-dialog"
 import { DbComparisonPanel } from "@/components/admin/db-comparison-panel"
 import { RowIdentityDiagnostic } from "@/components/admin/row-identity-diagnostic"
+import { UnifiedDbDiagnostic } from "@/components/admin/unified-db-diagnostic"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -112,6 +113,11 @@ export default async function AdminDashboardPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
+        {/* UNIFIED DB DIAGNOSTIC - Shows Read vs Write */}
+        <div className="mb-6">
+          <UnifiedDbDiagnostic />
+        </div>
+
         <div className="mb-6">
           <DbComparisonPanel 
             readDiagnostics={{
