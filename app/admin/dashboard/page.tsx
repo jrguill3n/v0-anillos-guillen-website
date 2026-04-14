@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { isAdminAuthenticated } from "@/lib/admin-auth"
-import { createClient, logDbConnection } from "@/lib/supabase/server"
+import { createClient, logDbConnection, getDbDiagnostics } from "@/lib/supabase/server"
 import { logoutAdmin, clearAllRings, diagnosticCatalog } from "../actions"
 import { Button } from "@/components/ui/button"
 import { AdminRefreshButton } from "@/components/admin/admin-refresh-button"
@@ -32,6 +32,7 @@ export default async function AdminDashboardPage() {
 
   const correlationId = logDbConnection("LIST_ADMIN")
   const supabase = await createClient()
+  const dbDiag = getDbDiagnostics()
 
   const { data: rings, error } = await supabase
     .from("rings")
@@ -68,11 +69,19 @@ export default async function AdminDashboardPage() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex flex-col gap-1">
               <h1 className="text-xl sm:text-2xl font-serif font-bold">Admin</h1>
-              <div className="flex items-center gap-3 flex-wrap">
-                <p className="text-xs text-muted-foreground">
+              <div className="flex items-center gap-3 flex-wrap text-xs">
+                <div className="bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded border border-blue-200 dark:border-blue-800 font-mono">
+                  <p className="text-blue-700 dark:text-blue-300">
+                    Read DB host: <span className="font-semibold">{dbDiag.maskedDbHost}</span>
+                  </p>
+                  <p className="text-blue-700 dark:text-blue-300">
+                    Read DB name: <span className="font-semibold">{dbDiag.dbName}</span>
+                  </p>
+                </div>
+                <p className="text-muted-foreground">
                   Rings in DB: <span className="font-mono font-semibold text-foreground">{rings?.length || 0}</span>
                 </p>
-                <p className="text-xs text-muted-foreground">Última carga: {timestamp}</p>
+                <p className="text-muted-foreground">Última carga: {timestamp}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">

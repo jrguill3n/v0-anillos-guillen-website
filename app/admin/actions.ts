@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient, logDbConnection } from "@/lib/supabase/server"
+import { createClient, logDbConnection, getDbDiagnostics } from "@/lib/supabase/server"
 import { verifyAdminCredentials, setAdminSession, clearAdminSession } from "@/lib/admin-auth"
 import { revalidatePath, revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
@@ -154,9 +154,18 @@ export async function updateRing(id: string, formData: FormData) {
 
 export async function deleteRing(id: string) {
   const correlationId = logDbConnection("DELETE_RING")
+  const dbDiag = getDbDiagnostics()
   const supabase = await createClient()
 
+  console.log(`[v0] [${correlationId}] DELETE_RING: DB Host: ${dbDiag.dbHost} | DB Name: ${dbDiag.dbName}`)
   console.log(`[v0] [${correlationId}] DELETE_RING: Starting deletion for ID:`, id)
+
+  // Get count BEFORE deletion
+  const { count: countBefore } = await supabase
+    .from("rings")
+    .select("*", { count: "exact", head: true })
+
+  console.log(`[v0] [${correlationId}] DELETE_RING: Rings before delete: ${countBefore}`)
 
   // Step 1: Call the atomic RPC function for transactional delete
   const { data, error: rpcError } = await supabase.rpc("delete_ring_atomic", {
@@ -217,6 +226,13 @@ export async function deleteRing(id: string) {
     slug: data.slug,
   })
 
+  // Get count AFTER deletion
+  const { count: countAfter } = await supabase
+    .from("rings")
+    .select("*", { count: "exact", head: true })
+
+  console.log(`[v0] [${correlationId}] DELETE_RING: Rings after delete: ${countAfter}`)
+
   // Step 3: Revalidate all relevant paths
   revalidateTag("rings")
   revalidatePath("/admin/dashboard")
@@ -227,7 +243,16 @@ export async function deleteRing(id: string) {
 
   console.log(`[v0] [${correlationId}] DELETE_RING: Complete - Deleted ${data.code} at`, new Date().toISOString())
 
-  return { success: true }
+  return { 
+    success: true,
+    diagnostics: {
+      dbHost: dbDiag.dbHost,
+      dbName: dbDiag.dbName,
+      maskedHost: dbDiag.maskedDbHost,
+      ringsBefore: countBefore,
+      ringsAfter: countAfter,
+    }
+  }
 }
 
 export async function toggleRingActive(id: string, isActive: boolean) {
@@ -266,6 +291,7 @@ export async function updateRingOrder(updates: { id: string; order_index: number
 
 export async function getAdminRings() {
   const correlationId = logDbConnection("GET_ADMIN_RINGS")
+  const dbDiag = getDbDiagnostics()
   
   // Force cache invalidation before fetch
   revalidateTag("rings")
@@ -273,7 +299,15 @@ export async function getAdminRings() {
 
   const supabase = await createClient()
 
+  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: DB Host: ${dbDiag.dbHost} | DB Name: ${dbDiag.dbName}`)
   console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetching ALL rings at ${new Date().toISOString()}`)
+
+  // Get count BEFORE query
+  const { count: countBefore } = await supabase
+    .from("rings")
+    .select("*", { count: "exact", head: true })
+
+  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Rings in DB before fetch: ${countBefore}`)
 
   const { data: rings, error } = await supabase
     .from("rings")
@@ -282,22 +316,42 @@ export async function getAdminRings() {
 
   if (error) {
     console.error(`[v0] [${correlationId}] GET_ADMIN_RINGS: Error:`, error)
-    return { error: error.message, rings: [] }
+    return { error: error.message, rings: [], diagnostics: { dbHost: dbDiag.dbHost, dbName: dbDiag.dbName, rowsReturned: 0 } }
   }
 
   console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetched ${rings?.length || 0} rings`)
 
-  return { success: true, rings: rings || [] }
+  return { 
+    success: true, 
+    rings: rings || [],
+    diagnostics: {
+      dbHost: dbDiag.dbHost,
+      dbName: dbDiag.dbName,
+      maskedHost: dbDiag.maskedDbHost,
+      rowsReturned: rings?.length || 0,
+      countBefore: countBefore,
+    }
+  }
 }
 
 export async function getPublicRings() {
   const correlationId = logDbConnection("GET_PUBLIC_RINGS")
+  const dbDiag = getDbDiagnostics()
   revalidateTag("rings")
   revalidatePath("/catalogo")
 
   const supabase = await createClient()
 
+  console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: DB Host: ${dbDiag.dbHost} | DB Name: ${dbDiag.dbName}`)
   console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Fetching active rings at ${new Date().toISOString()}`)
+
+  // Get count BEFORE query
+  const { count: countBefore } = await supabase
+    .from("rings")
+    .select("*", { count: "exact", head: true })
+    .eq("is_active", true)
+
+  console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Active rings in DB before fetch: ${countBefore}`)
 
   const { data: rings, error } = await supabase
     .from("rings")
@@ -307,12 +361,22 @@ export async function getPublicRings() {
 
   if (error) {
     console.error(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Error:`, error)
-    return { error: error.message, rings: [] }
+    return { error: error.message, rings: [], diagnostics: { dbHost: dbDiag.dbHost, dbName: dbDiag.dbName, rowsReturned: 0 } }
   }
 
   console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Fetched ${rings?.length || 0} active rings`)
 
-  return { success: true, rings: rings || [] }
+  return { 
+    success: true, 
+    rings: rings || [],
+    diagnostics: {
+      dbHost: dbDiag.dbHost,
+      dbName: dbDiag.dbName,
+      maskedHost: dbDiag.maskedDbHost,
+      rowsReturned: rings?.length || 0,
+      countBefore: countBefore,
+    }
+  }
 }
 
 export async function diagnosticCatalog() {
@@ -373,9 +437,13 @@ export async function diagnosticCatalog() {
     return { error: String(error) }
   }
 }
+
+export async function clearAllRings() {
   const correlationId = logDbConnection("CLEAR_ALL_RINGS")
+  const dbDiag = getDbDiagnostics()
   const supabase = await createClient()
 
+  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: DB Host: ${dbDiag.dbHost} | DB Name: ${dbDiag.dbName}`)
   console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Attempting to delete all rings...`)
 
   // First get count for logging
@@ -383,7 +451,7 @@ export async function diagnosticCatalog() {
     .from("rings")
     .select("*", { count: "exact", head: true })
 
-  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Found ${beforeCount} rings to delete`)
+  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Rings before delete: ${beforeCount}`)
 
   // Delete all rings - use gte on created_at to match all rows
   const { error, count: deletedCount } = await supabase
@@ -403,7 +471,7 @@ export async function diagnosticCatalog() {
     .from("rings")
     .select("*", { count: "exact", head: true })
 
-  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Remaining rings: ${afterCount}`)
+  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Rings after delete: ${afterCount}`)
 
   if (afterCount && afterCount > 0) {
     console.error(`[v0] [${correlationId}] CLEAR_ALL_RINGS: WARNING - ${afterCount} rings still remain!`)
@@ -416,5 +484,17 @@ export async function diagnosticCatalog() {
 
   console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Complete at ${new Date().toISOString()}`)
 
-  return { success: true, deletedCount: deletedCount || 0 }
+  return { 
+    success: true, 
+    deletedCount: deletedCount || 0,
+    diagnostics: {
+      dbHost: dbDiag.dbHost,
+      dbName: dbDiag.dbName,
+      maskedHost: dbDiag.maskedDbHost,
+      ringsBefore: beforeCount,
+      ringsAfter: afterCount,
+      deletedRows: deletedCount,
+    }
+  }
 }
+

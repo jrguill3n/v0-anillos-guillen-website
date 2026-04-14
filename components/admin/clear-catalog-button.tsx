@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 type ClearCatalogButtonProps = {
-  onClear: () => Promise<{ success?: boolean; error?: string; deletedCount?: number }>
+  onClear: () => Promise<{ success?: boolean; error?: string; deletedCount?: number; diagnostics?: any }>
 }
 
 export function ClearCatalogButton({ onClear }: ClearCatalogButtonProps) {
@@ -34,9 +34,14 @@ export function ClearCatalogButton({ onClear }: ClearCatalogButtonProps) {
       // Close dialog first
       setIsOpen(false)
       
+      const diag = result.diagnostics
+      const diagMsg = diag ? 
+        `DB: ${diag.maskedHost} | Antes: ${diag.ringsBefore} | Después: ${diag.ringsAfter} | Eliminados: ${diag.deletedRows}` :
+        `Se eliminaron ${result.deletedCount || 0} anillos`
+      
       toast({
         title: "Catálogo vaciado",
-        description: `Se eliminaron ${result.deletedCount || 0} anillos`,
+        description: diagMsg,
       })
       
       // Force full page refresh to ensure server re-renders with fresh data
