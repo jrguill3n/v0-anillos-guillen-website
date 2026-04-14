@@ -6,10 +6,10 @@ import { revalidatePath, revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
 
 export async function loginAdmin(formData: FormData) {
-  const email = formData.get("email") as string
+  const credential = formData.get("credential") as string
   const password = formData.get("password") as string
 
-  if (!verifyAdminCredentials(email, password)) {
+  if (!verifyAdminCredentials(credential, password)) {
     return { error: "Credenciales inválidas" }
   }
 

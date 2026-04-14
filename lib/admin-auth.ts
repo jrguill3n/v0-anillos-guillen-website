@@ -24,14 +24,31 @@ export async function clearAdminSession() {
   cookieStore.delete(ADMIN_COOKIE_NAME)
 }
 
-export function verifyAdminCredentials(email: string, password: string): boolean {
+export function verifyAdminCredentials(credential: string, password: string): boolean {
+  const adminUsername = process.env.ADMIN_USERNAME
   const adminEmail = process.env.ADMIN_EMAIL
   const adminPassword = process.env.ADMIN_PASSWORD
 
-  if (!adminEmail || !adminPassword) {
-    console.error("[v0] ADMIN_EMAIL and ADMIN_PASSWORD environment variables are not set")
+  if (!adminPassword) {
+    console.error("[v0] ADMIN_PASSWORD environment variable is not set")
     return false
   }
 
-  return email === adminEmail && password === adminPassword
+  // Support both username and email
+  const credentialMatch =
+    (adminUsername && credential === adminUsername) || (adminEmail && credential === adminEmail)
+
+  if (!credentialMatch) {
+    console.warn("[v0] Admin login attempt with invalid username/email")
+    return false
+  }
+
+  const passwordMatch = password === adminPassword
+
+  if (!passwordMatch) {
+    console.warn("[v0] Admin login attempt with invalid password")
+    return false
+  }
+
+  return true
 }
