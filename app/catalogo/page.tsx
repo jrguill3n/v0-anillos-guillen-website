@@ -4,7 +4,7 @@ import type { Metadata } from "next"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
-import { createClient, logDbConnection } from "@/lib/supabase/server"
+import { createClient, logDbConnection, getDbDiagnostics } from "@/lib/supabase/server"
 import { formatGoldInfo } from "@/lib/utils"
 import { CatalogSortDropdown } from "@/components/catalog-sort-dropdown"
 import { DataSourceDebug } from "@/components/admin/data-source-debug"
@@ -65,12 +65,15 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
   const sortParam = (params.sort || "price_asc") as SortOption
 
   const correlationId = logDbConnection("LIST_CATALOG")
+  const dbDiag = getDbDiagnostics()
 
   let rings = []
   let error = null
 
   try {
     const supabase = await createClient()
+
+    console.log(`[v0] [${correlationId}] LIST_CATALOG: DB Host: ${dbDiag.dbHost} | Port: ${dbDiag.dbPort} | Name: ${dbDiag.dbName}`)
 
     let query = supabase.from("rings").select("*").eq("is_active", true)
 
@@ -131,7 +134,7 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
               ringCount={validRings.length}
               firstCodes={validRings.slice(0, 5).map((r) => r.code)}
               fetchedAt={new Date().toLocaleTimeString("es-MX")}
-              dbHost={process.env.NEXT_PUBLIC_SUPABASE_URL?.split("//")[1]?.split(".")[0] || "supabase"}
+              dbDiagnostics={dbDiag}
               rowsReturned={rings.length}
             />
 

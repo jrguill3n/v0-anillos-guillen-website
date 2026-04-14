@@ -18,21 +18,53 @@ function logDbConnection(context: string) {
 
 function getDbDiagnostics() {
   const supabaseUrl = process.env.SUPABASE_URL || ""
+  const supabaseKey = process.env.SUPABASE_ANON_KEY || ""
   
-  // Extract host from URL (e.g., "wddpienokibwhcixzkxl.supabase.co")
-  const host = supabaseUrl ? new URL(supabaseUrl).host : "UNKNOWN"
-  
-  // Extract db name from host (first part before the dot)
-  const dbName = host.split(".")[0] || "UNKNOWN"
-  
-  // Mask the URL (show only first and last 4 chars of the host)
-  const maskedHost = host.length > 8 ? `${host.substring(0, 4)}...${host.substring(host.length - 4)}` : host
-  
-  return {
-    dbHost: host,
-    dbName: dbName,
-    maskedDbHost: maskedHost,
-    url: supabaseUrl,
+  try {
+    const url = new URL(supabaseUrl)
+    const host = url.host
+    const dbName = host.split(".")[0] || "UNKNOWN"
+    const maskedHost = host.length > 8 ? `${host.substring(0, 4)}...${host.substring(host.length - 4)}` : host
+    
+    // For Supabase, default port is 6543 (PostgreSQL proxy) or 5432 (direct)
+    // Supabase uses port 6543 for the REST API and 5432 for direct PostgreSQL connections
+    const port = "6543" // Supabase PostgreSQL proxy port
+    const defaultSchema = "public"
+    
+    // Extract the project reference from the hostname (first part)
+    const projectRef = dbName
+    
+    // Mask the anon key (show first 4 and last 4 chars)
+    const maskedKey = supabaseKey.length > 8 
+      ? `${supabaseKey.substring(0, 4)}...${supabaseKey.substring(supabaseKey.length - 4)}`
+      : "***"
+    
+    return {
+      dbHost: host,
+      dbName: dbName,
+      maskedDbHost: maskedHost,
+      dbPort: port,
+      dbUser: `${projectRef}_admin`, // Supabase creates this user
+      dbSchema: defaultSchema,
+      url: supabaseUrl,
+      maskedUrl: `https://${maskedHost}/rest/v1`,
+      anonKeyMasked: maskedKey,
+      projectRef: projectRef,
+    }
+  } catch (e) {
+    console.error("[v0] Error parsing Supabase URL:", e)
+    return {
+      dbHost: "UNKNOWN",
+      dbName: "UNKNOWN",
+      maskedDbHost: "????...????",
+      dbPort: "????",
+      dbUser: "UNKNOWN",
+      dbSchema: "UNKNOWN",
+      url: supabaseUrl,
+      maskedUrl: "UNKNOWN",
+      anonKeyMasked: "???",
+      projectRef: "UNKNOWN",
+    }
   }
 }
 

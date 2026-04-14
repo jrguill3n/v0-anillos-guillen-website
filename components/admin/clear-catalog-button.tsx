@@ -3,8 +3,9 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Trash2 } from "lucide-react"
+import { Trash2, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,14 +16,37 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 type ClearCatalogButtonProps = {
   onClear: () => Promise<{ success?: boolean; error?: string; deletedCount?: number; diagnostics?: any }>
 }
 
+type DiagnosticResult = {
+  dbHost: string
+  dbPort: string
+  dbName: string
+  dbSchema: string
+  projectRef: string
+  maskedHost: string
+  beforeCount: number
+  deletedCount: number
+  afterCount: number
+  transactionFailed: boolean
+  warning?: string | null
+}
+
 export function ClearCatalogButton({ onClear }: ClearCatalogButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [showDiagnostics, setShowDiagnostics] = useState(false)
+  const [lastDiagnostics, setLastDiagnostics] = useState<DiagnosticResult | null>(null)
   const router = useRouter()
   const { toast } = useToast()
 
@@ -31,25 +55,33 @@ export function ClearCatalogButton({ onClear }: ClearCatalogButtonProps) {
     const result = await onClear()
     
     if (result.success) {
-      // Close dialog first
+      // Close confirmation dialog
       setIsOpen(false)
       
-      const diag = result.diagnostics
-      const diagMsg = diag ? 
-        `DB: ${diag.maskedHost} | Antes: ${diag.ringsBefore} | Después: ${diag.ringsAfter} | Eliminados: ${diag.deletedRows}` :
-        `Se eliminaron ${result.deletedCount || 0} anillos`
+      // Store diagnostics and show them
+      if (result.diagnostics) {
+        setLastDiagnostics(result.diagnostics)
+        setShowDiagnostics(true)
+      }
       
       toast({
         title: "Catálogo vaciado",
-        description: diagMsg,
+        description: `Deleted: ${result.diagnostics?.deletedCount || 0} rows`,
       })
       
       // Force full page refresh to ensure server re-renders with fresh data
-      router.refresh()
+      setTimeout(() => {
+        router.refresh()
+      }, 1000)
     } else {
+      const diag = result.diagnostics
+      const diagMsg = diag ? 
+        `Write DB: ${diag.maskedHost}:${diag.dbPort} (${diag.dbName}) - Transaction failed` :
+        (result.error || "No se pudo vaciar el catálogo")
+      
       toast({
         title: "Error",
-        description: result.error || "No se pudo vaciar el catálogo",
+        description: diagMsg,
         variant: "destructive",
       })
     }
@@ -90,6 +122,63 @@ export function ClearCatalogButton({ onClear }: ClearCatalogButtonProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Diagnostic Modal */}
+      <Dialog open={showDiagnostics} onOpenChange={setShowDiagnostics}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Clear Operation Diagnostics</DialogTitle>
+            <DialogDescription>Write DB diagnostics from clearAllRings()</DialogDescription>
+          </DialogHeader>
+          {lastDiagnostics && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Delete Transaction Result</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Status */}
+                <div className={`p-3 rounded border-2 ${lastDiagnostics.transactionFailed ? "border-red-300 bg-red-50 dark:bg-red-900/20" : "border-green-300 bg-green-50 dark:bg-green-900/20"}`}>
+                  <p className={`font-bold ${lastDiagnostics.transactionFailed ? "text-red-700 dark:text-red-300" : "text-green-700 dark:text-green-300"}`}>
+                    {lastDiagnostics.transactionFailed ? "❌ Transaction Failed" : "✅ Delete Successful"}
+                  </p>
+                  {lastDiagnostics.warning && (
+                    <p className="text-sm text-red-600 dark:text-red-400 mt-2">{lastDiagnostics.warning}</p>
+                  )}
+                </div>
+
+                {/* Counts */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded">
+                    <p className="text-xs text-muted-foreground">Before</p>
+                    <p className="text-2xl font-bold">{lastDiagnostics.beforeCount}</p>
+                  </div>
+                  <div className="bg-orange-100 dark:bg-orange-900/20 p-3 rounded">
+                    <p className="text-xs text-muted-foreground">Deleted</p>
+                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{lastDiagnostics.deletedCount}</p>
+                  </div>
+                  <div className={`p-3 rounded ${lastDiagnostics.afterCount > 0 ? "bg-red-100 dark:bg-red-900/20" : "bg-green-100 dark:bg-green-900/20"}`}>
+                    <p className="text-xs text-muted-foreground">After</p>
+                    <p className={`text-2xl font-bold ${lastDiagnostics.afterCount > 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}`}>
+                      {lastDiagnostics.afterCount}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Connection Details */}
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">Write DB Connection:</h4>
+                  <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded text-xs font-mono space-y-1">
+                    <div>Host: {lastDiagnostics.dbHost}:{lastDiagnostics.dbPort}</div>
+                    <div>Name: {lastDiagnostics.dbName}</div>
+                    <div>Schema: {lastDiagnostics.dbSchema}</div>
+                    <div>ProjectRef: {lastDiagnostics.projectRef}</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
