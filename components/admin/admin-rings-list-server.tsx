@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Trash2, Eye, EyeOff, Loader2, RefreshCw } from "lucide-react"
+import { Search, Trash2, Eye, EyeOff, Loader2 } from "lucide-react"
 import { deleteRing, toggleRingActive } from "@/app/admin/actions"
 import { RingFormDialog } from "./ring-form-dialog"
 import {
@@ -48,7 +48,6 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [ringToDelete, setRingToDelete] = useState<Ring | null>(null)
-  const [isRefreshing, setIsRefreshing] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -161,7 +160,7 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
 
   return (
     <div className="space-y-4">
-      {/* Search and controls bar */}
+      {/* Search and sort bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -184,13 +183,6 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
             <SelectItem value="name_desc">Nombre: Z-A</SelectItem>
           </SelectContent>
         </Select>
-
-        <Button onClick={() => router.refresh()} disabled={isRefreshing} variant="outline" size="sm" className="gap-2">
-          <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-          <span className="hidden sm:inline">Recargar</span>
-        </Button>
-
-        <RingFormDialog mode="create" onSuccess={() => router.refresh()} />
       </div>
 
       {/* Results count */}
@@ -227,14 +219,6 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-semibold text-lg">{ring.code}</span>
-                      {/* DEBUG: Show row identity */}
-                      <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded font-mono">
-                        id: {ring.id.slice(0, 8)}...
-                      </span>
-                      {/* DEBUG: Show slug */}
-                      <span className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-1 rounded font-mono">
-                        slug: {ring.slug}
-                      </span>
                       {!ring.is_active && (
                         <Badge variant="secondary" className="text-xs">
                           Inactivo
