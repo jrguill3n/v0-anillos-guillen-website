@@ -159,7 +159,6 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
   }
 
   return (
-  return (
     <div className="space-y-6">
       {/* Search and Sort Section - Premium card style */}
       <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 sm:p-5">
