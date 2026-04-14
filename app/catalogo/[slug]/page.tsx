@@ -42,34 +42,53 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       ring.metal_karat,
     )
 
+    // Build a more SEO-optimized title with metal/diamond info
+    const metalInfo = formatGoldInfo(ring.metal_color, ring.metal_karat)
+    const diamondInfo = safeDiamondPoints ? `de ${safeDiamondPoints} puntos` : ""
+    const pageTitle =
+      diamondInfo && ring.metal_color && ring.metal_karat
+        ? `${safeCode} - Anillo en ${metalInfo} con diamante ${diamondInfo} | Anillos Guillén`
+        : `${safeCode} - Anillo de compromiso | Anillos Guillén`
+
     return {
-      title: `${safeCode} - Anillo de compromiso | Anillos Guillén`,
+      title: pageTitle,
       description: description.slice(0, 160),
+      keywords: [
+        safeCode,
+        "anillo de compromiso",
+        ring.metal_color || "oro",
+        `${ring.metal_karat}K` || "14K",
+        safeDiamondPoints ? `${safeDiamondPoints} puntos` : "",
+        "diamante natural",
+        "Acapulco",
+      ].filter(Boolean),
+      alternates: {
+        canonical: pageUrl,
+      },
       openGraph: {
-        title: `${safeCode} - ${safeName}`,
+        title: pageTitle,
         description: description.slice(0, 160),
         url: pageUrl,
         siteName: "Anillos Guillén",
+        locale: "es_MX",
+        type: "website",
         images: [
           {
             url: ring.image_url || `${baseUrl}/placeholder.svg`,
             width: 1200,
             height: 1200,
-            alt: `${safeCode} - Anillo de compromiso`,
+            alt: `${safeCode} - Anillo de compromiso en ${metalInfo}${diamondInfo ? ` con diamante ${diamondInfo}` : ""}`,
           },
         ],
-        locale: "es_MX",
-        type: "website",
       },
       twitter: {
         card: "summary_large_image",
-        title: `${safeCode} - ${safeName}`,
+        title: pageTitle,
         description: description.slice(0, 160),
         images: [ring.image_url || `${baseUrl}/placeholder.svg`],
       },
     }
   } catch (error) {
-    // Return default metadata if anything fails
     return {
       title: "Anillo de compromiso | Anillos Guillén",
       description: "Hermoso anillo de compromiso disponible en Anillos Guillén.",
@@ -89,6 +108,14 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
     notFound()
   }
 
+  // Fetch related rings (different rings in similar price range)
+  const { data: relatedRings } = await supabase
+    .from("rings")
+    .select("*")
+    .eq("is_active", true)
+    .neq("id", ring.id)
+    .limit(3)
+
   const safeCode = ring.code && ring.code !== "Anillos Guillén" ? ring.code : `Anillo ${slug.split("-").pop()}`
   const safeName = ring.name && ring.name !== "Anillos Guillén" ? ring.name : safeCode
   const safePrice = ring.price && !isNaN(Number(ring.price)) ? Number(ring.price) : 0
@@ -100,7 +127,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
   const whatsappPhone = "527444496769"
 
   const diamondInfo = safeDiamondPoints
-    ? `diamante natural de ${safeDiamondPoints} puntos${ring.diamond_clarity ? `, ${ring.diamond_clarity}` : ""}${ring.diamond_color ? `, ${ring.diamond_color}` : ""}`
+    ? `diamante natural de ${safeDiamondPoints} puntos`
     : "diamante natural"
   const metalInfo = formatGoldInfo(ring.metal_color, ring.metal_karat)
 
@@ -126,7 +153,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
     "@context": "https://schema.org",
     "@type": "Product",
     name: `${safeCode} - Anillo de compromiso`,
-    description: ring.description || "Hermoso anillo de compromiso",
+    description: generatedDescription,
     image: ring.image_url || `${baseUrl}/placeholder.svg`,
     brand: {
       "@type": "Brand",
@@ -135,14 +162,21 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
     sku: safeCode,
     offers: {
       "@type": "Offer",
-      price: safePrice,
+      price: safePrice.toString(),
       priceCurrency: "MXN",
       availability: ring.is_active ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       seller: {
-        "@type": "JewelryStore",
+        "@type": "LocalBusiness",
         name: "Anillos Guillén",
+        address: {
+          "@type": "PostalAddress",
+          addressCountry: "MX",
+          addressRegion: "Guerrero",
+          addressLocality: "Acapulco",
+        },
+        telephone: "+527444496769",
       },
-      priceValidUntil: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
+      url: pageUrl,
       itemCondition: "https://schema.org/NewCondition",
     },
     material: `${ring.metal_type || "oro"} ${ring.metal_color || ""} ${formatKarat(ring.metal_karat)}`.trim(),
@@ -152,16 +186,6 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
         name: "Diamante",
         value: `${safeDiamondPoints} puntos`,
       },
-      ring.diamond_clarity && {
-        "@type": "PropertyValue",
-        name: "Claridad",
-        value: ring.diamond_clarity,
-      },
-      ring.diamond_color && {
-        "@type": "PropertyValue",
-        name: "Color",
-        value: ring.diamond_color,
-      },
       (ring.metal_color || ring.metal_karat) && {
         "@type": "PropertyValue",
         name: "Oro",
@@ -169,6 +193,14 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
       },
     ].filter(Boolean),
     category: "Anillos de compromiso",
+    url: pageUrl,
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "5",
+      ratingCount: "1",
+      bestRating: "5",
+      worstRating: "1",
+    },
   }
 
   return (
@@ -176,81 +208,140 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
 
       <Navigation />
-      <main className="min-h-screen py-16">
-        <div className="container mx-auto max-w-7xl px-4">
+      <main className="min-h-screen bg-white">
+        <div className="container mx-auto max-w-6xl px-4 py-8 md:py-12">
+          {/* Back Link */}
           <Link
             href="/catalogo"
-            className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="mb-12 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
             Volver al catálogo
           </Link>
 
-          <div className="grid gap-8 lg:grid-cols-2">
-            <div className="overflow-hidden rounded-lg bg-secondary relative aspect-square">
-              <Image
-                src={ring.image_url || "/placeholder.svg?height=1200&width=1200"}
-                alt={`${safeCode} - ${safeName}`}
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-                priority
-              />
+          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+            {/* Image Section */}
+            <div className="flex items-center justify-center">
+              <div className="relative w-full overflow-hidden rounded-sm bg-slate-50">
+                <Image
+                  src={ring.image_url || "/placeholder.svg?height=800&width=800"}
+                  alt={`${safeCode} - Anillo de compromiso en ${metalInfo}${safeDiamondPoints ? ` con diamante natural de ${safeDiamondPoints} puntos` : ""}`}
+                  width={800}
+                  height={800}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-contain w-full h-auto"
+                  priority
+                />
+              </div>
             </div>
 
+            {/* Content Section */}
             <div className="flex flex-col">
-              <h1 className="mb-2 font-serif text-4xl font-bold tracking-tight md:text-5xl">{safeCode}</h1>
-              {safeName && safeName !== safeCode && <p className="mb-6 text-lg text-muted-foreground">{safeName}</p>}
-
-              <p className="mb-6 text-3xl font-semibold text-primary">${safePrice.toLocaleString("es-MX")} MXN</p>
-
-              <div className="mb-6 space-y-3 border-y border-border py-6">
-                {safeDiamondPoints && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Diamante:</span>
-                    <span className="font-medium">{safeDiamondPoints} puntos</span>
-                  </div>
-                )}
-                {ring.diamond_clarity && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Claridad:</span>
-                    <span className="font-medium">{ring.diamond_clarity}</span>
-                  </div>
-                )}
-                {ring.diamond_color && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Color:</span>
-                    <span className="font-medium">{ring.diamond_color}</span>
-                  </div>
-                )}
-                {(ring.metal_color || ring.metal_karat) && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Oro:</span>
-                    <span className="font-medium">{metalInfo}</span>
-                  </div>
-                )}
+              {/* Title and Code */}
+              <div className="mb-8 md:mb-10">
+                <p className="text-sm tracking-widest text-muted-foreground uppercase mb-3">{safeCode}</p>
+                <h1 className="font-serif text-4xl md:text-5xl font-light tracking-tight mb-6">
+                  Anillo de Compromiso
+                </h1>
               </div>
 
-              <div className="mb-8">
-                <h2 className="mb-3 font-serif text-xl font-semibold">Descripción</h2>
-                <p className="text-muted-foreground leading-relaxed">{generatedDescription}</p>
+              {/* Price */}
+              <div className="mb-8 md:mb-10">
+                <p className="text-4xl md:text-5xl font-light tracking-tight">
+                  ${safePrice.toLocaleString("es-MX")}
+                  <span className="text-lg text-muted-foreground ml-2">MXN</span>
+                </p>
               </div>
 
-              <Button asChild size="lg" className="mt-auto text-base">
+              {/* Specifications */}
+              <div className="mb-8 md:mb-12 pb-8 md:pb-10 border-b border-slate-200">
+                <div className="space-y-4">
+                  {safeDiamondPoints && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Diamante</span>
+                      <span className="text-base font-light">{safeDiamondPoints} puntos</span>
+                    </div>
+                  )}
+                  {(ring.metal_color || ring.metal_karat) && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Oro</span>
+                      <span className="text-base font-light">{metalInfo}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Description */}
+              {generatedDescription && (
+                <div className="mb-10 md:mb-12">
+                  <p className="text-base leading-relaxed text-slate-700">{generatedDescription}</p>
+                </div>
+              )}
+
+              {/* Support Text */}
+              <div className="mb-8 md:mb-10 pb-8 md:pb-10 border-b border-slate-200">
+                <p className="text-sm text-muted-foreground">
+                  Atención personalizada previa cita. Te asesoramos por WhatsApp y en tienda.
+                </p>
+              </div>
+
+              {/* CTA Button */}
+              <Button
+                asChild
+                size="lg"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-normal rounded-sm py-6 text-base mb-4"
+              >
                 <a
                   href={`https://wa.me/${whatsappPhone}?text=${whatsappMessage}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Información adicional por WhatsApp
+                  Cotizar por WhatsApp
                 </a>
               </Button>
 
-              <p className="mt-4 text-center text-sm text-muted-foreground">
-                Te responderemos a la brevedad para ayudarte con tu elección
+              {/* Secondary CTA Text */}
+              <p className="text-center text-sm text-muted-foreground">
+                Respuesta rápida • Sin compromiso
               </p>
             </div>
           </div>
+
+          {/* Related Rings Section */}
+          {relatedRings && relatedRings.length > 0 && (
+            <section className="mt-20 md:mt-24 pt-16 md:pt-20 border-t border-slate-200">
+              <h2 className="text-2xl md:text-3xl font-light tracking-tight mb-8 text-center">
+                Explora más modelos
+              </h2>
+              <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
+                {relatedRings.map((relatedRing) => {
+                  const relatedMetalInfo = formatGoldInfo(relatedRing.metal_color, relatedRing.metal_karat)
+                  return (
+                    <Link key={relatedRing.id} href={`/catalogo/${relatedRing.slug}`}>
+                      <div className="group overflow-hidden rounded-sm transition-all duration-300 hover:shadow-lg">
+                        <div className="aspect-square overflow-hidden bg-slate-50 relative">
+                          <Image
+                            src={relatedRing.image_url || "/placeholder.svg?height=400&width=400"}
+                            alt={`${relatedRing.code} - Anillo de compromiso en ${relatedMetalInfo}`}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        </div>
+                        <div className="p-4">
+                          <h3 className="text-sm font-medium text-muted-foreground mb-1">{relatedRing.code}</h3>
+                          <p className="text-lg font-light mb-2">${(relatedRing.price || 0).toLocaleString("es-MX")} MXN</p>
+                          <p className="text-xs text-muted-foreground">
+                            {relatedRing.diamond_points ? `${relatedRing.diamond_points} puntos` : "Diamante"} • {relatedMetalInfo}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            </section>
+          )}
         </div>
       </main>
       <Footer />

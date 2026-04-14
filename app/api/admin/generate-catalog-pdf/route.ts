@@ -54,8 +54,6 @@ export async function GET() {
         ${ring.price ? `<div class="price">$${ring.price.toLocaleString("es-MX")}</div>` : ""}
         <div class="details">
           ${ring.diamond_points ? `<p><strong>Diamante:</strong> ${ring.diamond_points} puntos</p>` : ""}
-          ${ring.diamond_clarity ? `<p><strong>Claridad:</strong> ${ring.diamond_clarity}</p>` : ""}
-          ${ring.diamond_color ? `<p><strong>Color:</strong> ${ring.diamond_color}</p>` : ""}
           ${ring.metal_type ? `<p><strong>Metal:</strong> ${ring.metal_type}${ring.metal_karat ? ` ${ring.metal_karat}` : ""}${ring.metal_color ? ` ${ring.metal_color}` : ""}</p>` : ""}
         </div>
       </div>
