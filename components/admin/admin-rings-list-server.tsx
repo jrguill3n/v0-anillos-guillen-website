@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useMemo, useEffect, useRef } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Trash2, Eye, EyeOff, Loader2, RefreshCw } from "lucide-react"
-import { deleteRing, toggleRingActive, getAdminRings } from "@/app/admin/actions"
+import { deleteRing, toggleRingActive } from "@/app/admin/actions"
 import { RingFormDialog } from "./ring-form-dialog"
 import {
   AlertDialog,
@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 type Ring = {
   id: string
@@ -42,36 +43,21 @@ type Ring = {
 
 type SortOption = "price_asc" | "price_desc" | "name_asc" | "name_desc"
 
-export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
-  // Initialize with prop value, then sync when prop changes
-  const [rings, setRings] = useState<Ring[]>(initialRings)
+export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] }) {
   const [searchQuery, setSearchQuery] = useState("")
   const [sortOption, setSortOption] = useState<SortOption>("price_asc")
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [ringToDelete, setRingToDelete] = useState<Ring | null>(null)
-  const [isRefetching, setIsRefetching] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const { toast } = useToast()
-  
-  // Track prop changes to detect when server sends new data
-  const prevInitialRingsRef = useRef<string>(initialRings.map(r => r.id).sort().join(","))
-  
-  // CRITICAL: Sync state when initialRings prop changes (full replacement, no merge)
-  // This ensures stale rows are removed when the server sends fresh data
-  useEffect(() => {
-    const newIds = initialRings.map(r => r.id).sort().join(",")
-    if (newIds !== prevInitialRingsRef.current) {
-      prevInitialRingsRef.current = newIds
-      setRings(initialRings)
-    }
-  }, [initialRings])
+  const router = useRouter()
 
-  // Filter and sort rings
-  const filteredAndSortedRings = useMemo(() => {
-    let filtered = rings
+  // Derive filtered/sorted list ONLY from initialRings prop (no mirrored state)
+  const filteredAndSortedRings = (() => {
+    let filtered = initialRings
 
-    // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
@@ -83,7 +69,6 @@ export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
       )
     }
 
-    // Sort
     const sorted = [...filtered]
     switch (sortOption) {
       case "price_asc":
@@ -99,28 +84,9 @@ export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
         sorted.sort((a, b) => b.name.localeCompare(a.name))
         break
     }
-
+    
     return sorted
-  }, [rings, searchQuery, sortOption])
-
-  // Refetch full list from DB
-  async function refetchRings() {
-    setIsRefetching(true)
-    try {
-      const result = await getAdminRings()
-      if (result.error) {
-        toast({
-          title: "Error",
-          description: "No se pudo actualizar la lista",
-          variant: "destructive",
-        })
-      } else {
-        setRings(result.rings)
-      }
-    } finally {
-      setIsRefetching(false)
-    }
-  }
+  })()
 
   async function handleToggleActive(ring: Ring) {
     setTogglingId(ring.id)
@@ -132,15 +98,14 @@ export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
         description: result.error,
         variant: "destructive",
       })
-      setTogglingId(null)
     } else {
-      // Refetch full list from DB instead of optimistic update
-      await refetchRings()
       toast({
         title: ring.is_active ? "Anillo desactivado" : "Anillo activado",
       })
-      setTogglingId(null)
+      // Force server refresh to get new data
+      router.refresh()
     }
+    setTogglingId(null)
   }
 
   function openDeleteDialog(ring: Ring) {
@@ -156,39 +121,40 @@ export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
 
     const result = await deleteRing(ringToDelete.id)
 
-    // Handle all cases - refetch the full list
-    if (result.success) {
-      // Successful deletion
-      await refetchRings()
-      toast({
-        title: "Anillo eliminado",
-        description: `${ringToDelete.code} se eliminó correctamente`,
-      })
-    } else if (result.error === "NOT_FOUND") {
-      // Ring was already deleted - refetch to clean up stale row
-      await refetchRings()
-      toast({
-        title: "Actualizado",
-        description: "Este anillo ya no existía. La lista fue actualizada.",
-      })
-    } else if (result.error === "CONSTRAINT") {
-      toast({
-        title: "No se pudo eliminar",
-        description: result.message || "No se pudo eliminar porque está relacionado con otros datos.",
-        variant: "destructive",
-      })
-    } else if (result.error === "VERIFY_FAILED") {
-      toast({
-        title: "Error al eliminar",
-        description: result.message || "No se pudo eliminar. Intenta de nuevo.",
-        variant: "destructive",
-      })
-    } else {
-      toast({
-        title: "Error al eliminar",
-        description: result.message || "Ocurrió un error al eliminar el anillo.",
-        variant: "destructive",
-      })
+    if (result.success || result.error === "NOT_FOUND") {
+      if (result.error === "NOT_FOUND") {
+        toast({
+          title: "Actualizado",
+          description: "Este anillo ya no existía.",
+        })
+      } else {
+        toast({
+          title: "Anillo eliminado",
+          description: `${ringToDelete.code} se eliminó correctamente`,
+        })
+      }
+      // Force server refresh to get new data from DB
+      router.refresh()
+    } else if (result.error) {
+      if (result.error === "CONSTRAINT") {
+        toast({
+          title: "No se pudo eliminar",
+          description: result.message || "No se pudo eliminar porque está relacionado con otros datos.",
+          variant: "destructive",
+        })
+      } else if (result.error === "VERIFY_FAILED") {
+        toast({
+          title: "Error al eliminar",
+          description: result.message || "No se pudo eliminar. Intenta de nuevo.",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Error al eliminar",
+          description: result.message || "Ocurrió un error al eliminar el anillo.",
+          variant: "destructive",
+        })
+      }
     }
 
     setDeletingId(null)
@@ -221,12 +187,12 @@ export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
           </SelectContent>
         </Select>
 
-        <Button onClick={refetchRings} disabled={isRefetching} variant="outline" size="sm" className="gap-2">
-          <RefreshCw className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`} />
-          <span className="hidden sm:inline">Recargar desde BD</span>
+        <Button onClick={() => router.refresh()} disabled={isRefreshing} variant="outline" size="sm" className="gap-2">
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+          <span className="hidden sm:inline">Recargar</span>
         </Button>
 
-        <RingFormDialog mode="create" onSuccess={() => refetchRings()} />
+        <RingFormDialog mode="create" onSuccess={() => router.refresh()} />
       </div>
 
       {/* Results count */}
@@ -235,7 +201,7 @@ export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
         {searchQuery && ` encontrado${filteredAndSortedRings.length !== 1 ? "s" : ""}`}
       </p>
 
-      {/* Mobile card list */}
+      {/* Ring list */}
       {filteredAndSortedRings.length === 0 ? (
         <div className="text-center py-12 border rounded-lg">
           <p className="text-muted-foreground">
@@ -308,7 +274,7 @@ export function AdminRingsManager({ initialRings }: { initialRings: Ring[] }) {
                 <RingFormDialog
                   mode="edit"
                   ring={ring}
-                  onSuccess={() => refetchRings()}
+                  onSuccess={() => router.refresh()}
                 />
 
                 <Button

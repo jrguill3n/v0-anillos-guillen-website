@@ -71,7 +71,7 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
   try {
     const supabase = await createClient()
 
-    let query = supabase.from("rings").select("*")
+    let query = supabase.from("rings").select("*").eq("is_active", true)
 
     // Apply sorting based on the sort parameter
     switch (sortParam) {
@@ -121,7 +121,6 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
 
   return (
     <>
-      {/* <!-- rings_count: ${validRings.length} timestamp: ${new Date().toISOString()} --> */}
       <Navigation />
       <main className="min-h-screen">
         <section className="py-20">
@@ -132,12 +131,15 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
                 Descubre nuestra colección de anillos de compromiso. Cada pieza es única y está elaborada con los más
                 altos estándares de calidad.
               </p>
+              <p className="mt-4 text-xs text-muted-foreground">
+                Public rings: <span className="font-mono font-semibold">{validRings.length}</span>
+              </p>
             </div>
 
             {validRings.length === 0 ? (
               <div className="text-center py-20">
                 <p className="text-lg text-muted-foreground">
-                  Nuestro catálogo se está actualizando. Regresa pronto para ver nuestros diseños.
+                  Próximamente estaremos agregando nuevos modelos.
                 </p>
               </div>
             ) : (

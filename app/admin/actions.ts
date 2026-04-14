@@ -89,20 +89,20 @@ export async function createRing(formData: FormData) {
 
   const ring = {
     code: formData.get("code") as string,
-    name: formData.get("name") as string,
+    name: (formData.get("code") as string).toUpperCase(),
     description: formData.get("description") as string,
     price: Number.parseFloat(formData.get("price") as string),
-    metal_type: formData.get("metal_type") as string,
+    metal_type: "oro",
     metal_karat: formData.get("metal_karat") as string,
     metal_color: formData.get("metal_color") as string,
     diamond_points: Number.parseFloat(formData.get("diamond_points") as string),
-    diamond_color: formData.get("diamond_color") as string,
-    diamond_clarity: formData.get("diamond_clarity") as string,
+    diamond_color: "incoloro",
+    diamond_clarity: "vs1",
     image_url: formData.get("image_url") as string,
-    featured: formData.get("featured") === "true",
+    featured: false,
     is_active: formData.get("is_active") === "true",
     slug: (formData.get("code") as string).toLowerCase().replace(/\s+/g, "-"),
-    order_index: Number.parseInt(formData.get("order_index") as string) || 0,
+    order_index: 0,
   }
 
   const { data, error } = await supabase.from("rings").insert([ring]).select().single()
@@ -122,17 +122,17 @@ export async function updateRing(id: string, formData: FormData) {
 
   const ring = {
     code: formData.get("code") as string,
-    name: formData.get("name") as string,
+    name: (formData.get("code") as string).toUpperCase(),
     description: formData.get("description") as string,
     price: Number.parseFloat(formData.get("price") as string),
-    metal_type: formData.get("metal_type") as string,
+    metal_type: "oro",
     metal_karat: formData.get("metal_karat") as string,
     metal_color: formData.get("metal_color") as string,
     diamond_points: Number.parseFloat(formData.get("diamond_points") as string),
-    diamond_color: formData.get("diamond_color") as string,
-    diamond_clarity: formData.get("diamond_clarity") as string,
+    diamond_color: "incoloro",
+    diamond_clarity: "vs1",
     image_url: formData.get("image_url") as string,
-    featured: formData.get("featured") === "true",
+    featured: false,
     is_active: formData.get("is_active") === "true",
     slug: (formData.get("code") as string).toLowerCase().replace(/\s+/g, "-"),
   }
@@ -267,27 +267,74 @@ export async function updateRingOrder(updates: { id: string; order_index: number
 export async function getAdminRings() {
   const correlationId = logDbConnection("GET_ADMIN_RINGS")
   
-  // Revalidate before creating new client to ensure cache is busted
+  // Force cache invalidation before fetch
   revalidateTag("rings")
   revalidatePath("/admin/dashboard")
-  
+
   const supabase = await createClient()
 
-  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetching fresh rings at ${new Date().toISOString()}`)
+  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetching ALL rings at ${new Date().toISOString()}`)
 
-  // Force bypass of any caching - add cache busting header
   const { data: rings, error } = await supabase
     .from("rings")
     .select("*")
     .order("order_index", { ascending: true })
 
   if (error) {
-    console.error(`[v0] [${correlationId}] GET_ADMIN_RINGS: Error fetching rings:`, error)
+    console.error(`[v0] [${correlationId}] GET_ADMIN_RINGS: Error:`, error)
     return { error: error.message, rings: [] }
   }
 
-  const ringCodes = rings?.map((r: any) => `${r.code}(${r.id.slice(0, 8)})`).join(", ") || "none"
-  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetched ${rings?.length || 0} fresh rings: ${ringCodes}`)
+  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetched ${rings?.length || 0} rings`)
 
   return { success: true, rings: rings || [] }
+}
+
+export async function getPublicRings() {
+  const correlationId = logDbConnection("GET_PUBLIC_RINGS")
+  revalidateTag("rings")
+  revalidatePath("/catalogo")
+
+  const supabase = await createClient()
+
+  console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Fetching active rings at ${new Date().toISOString()}`)
+
+  const { data: rings, error } = await supabase
+    .from("rings")
+    .select("*")
+    .eq("is_active", true)
+    .order("price", { ascending: true })
+
+  if (error) {
+    console.error(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Error:`, error)
+    return { error: error.message, rings: [] }
+  }
+
+  console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Fetched ${rings?.length || 0} active rings`)
+
+  return { success: true, rings: rings || [] }
+}
+
+export async function clearAllRings() {
+  const correlationId = logDbConnection("CLEAR_ALL_RINGS")
+  const supabase = await createClient()
+
+  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Attempting to delete all rings...`)
+
+  // Delete all rings from the database
+  const { error } = await supabase.from("rings").delete().neq("id", "00000000-0000-0000-0000-000000000000")
+
+  if (error) {
+    console.error(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Error:`, error)
+    return { error: error.message }
+  }
+
+  // Revalidate all relevant paths
+  revalidateTag("rings")
+  revalidatePath("/admin/dashboard")
+  revalidatePath("/catalogo")
+
+  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Successfully cleared all rings at ${new Date().toISOString()}`)
+
+  return { success: true }
 }

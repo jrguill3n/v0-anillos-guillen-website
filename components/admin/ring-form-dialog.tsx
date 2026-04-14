@@ -175,7 +175,7 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="code">Código *</Label>
-              <Input id="code" name="code" defaultValue={ring?.code} placeholder="0122" required />
+              <Input id="code" name="code" defaultValue={ring?.code} placeholder="Ej: 0122" required />
             </div>
 
             <div className="space-y-2">
@@ -190,17 +190,48 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
                 required
               />
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="name">Nombre *</Label>
-            <Input
-              id="name"
-              name="name"
-              defaultValue={ring?.name}
-              placeholder="Anillo de compromiso solitario"
-              required
-            />
+            <div className="space-y-2">
+              <Label htmlFor="diamond_points">Puntos diamante *</Label>
+              <Input
+                id="diamond_points"
+                name="diamond_points"
+                type="number"
+                step="0.01"
+                defaultValue={ring?.diamond_points}
+                placeholder="13"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="metal_color">Color de oro *</Label>
+              <Select name="metal_color" defaultValue={ring?.metal_color || "amarillo"}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="amarillo">Amarillo</SelectItem>
+                  <SelectItem value="blanco">Blanco</SelectItem>
+                  <SelectItem value="rosa">Rosa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="metal_karat">Kilates *</Label>
+              <Select name="metal_karat" value={goldKarat} onValueChange={setGoldKarat}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10k">10k</SelectItem>
+                  <SelectItem value="14k">14k</SelectItem>
+                  <SelectItem value="18k">18k</SelectItem>
+                  <SelectItem value="24k">24k</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -209,7 +240,7 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
               id="description"
               name="description"
               defaultValue={ring?.description}
-              placeholder="Hermoso anillo de compromiso con diseño clásico..."
+              placeholder="Describe el anillo brevemente..."
               rows={3}
               required
             />
@@ -253,68 +284,9 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                Formatos: JPG, PNG, WEBP. Tamaño máximo: 5MB. Se recomienda usar imágenes cuadradas de al menos
-                800x800px.
+                Formatos: JPG, PNG, WEBP. Máximo 5MB. Se recomienda cuadrado 800x800px.
               </p>
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="metal_type">Tipo de metal *</Label>
-              <Select name="metal_type" defaultValue={ring?.metal_type || "oro"}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="oro">Oro</SelectItem>
-                  <SelectItem value="platino">Platino</SelectItem>
-                  <SelectItem value="plata">Plata</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="metal_karat">Kilates *</Label>
-              <Select name="metal_karat" value={goldKarat} onValueChange={setGoldKarat}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10k">10k</SelectItem>
-                  <SelectItem value="14k">14k</SelectItem>
-                  <SelectItem value="18k">18k</SelectItem>
-                  <SelectItem value="24k">24k</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="metal_color">Color *</Label>
-              <Select name="metal_color" defaultValue={ring?.metal_color || "amarillo"}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="amarillo">Amarillo</SelectItem>
-                  <SelectItem value="blanco">Blanco</SelectItem>
-                  <SelectItem value="rosa">Rosa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="diamond_points">Puntos diamante *</Label>
-            <Input
-              id="diamond_points"
-              name="diamond_points"
-              type="number"
-              step="0.01"
-              defaultValue={ring?.diamond_points}
-              placeholder="5"
-              required
-            />
           </div>
 
           <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -322,7 +294,7 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
               <Label htmlFor="is_active" className="font-medium">
                 Activo
               </Label>
-              <p className="text-sm text-muted-foreground">Visible en el catálogo público</p>
+              <p className="text-sm text-muted-foreground">Visible en el catálogo</p>
             </div>
             <Switch id="is_active" checked={isActive} onCheckedChange={setIsActive} />
           </div>
