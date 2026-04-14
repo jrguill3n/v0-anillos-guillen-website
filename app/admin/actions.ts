@@ -299,7 +299,7 @@ export async function getAdminRings() {
 
   const supabase = await createClient()
 
-  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: DB Host: ${dbDiag.dbHost} | DB Name: ${dbDiag.dbName}`)
+  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: DB Host: ${dbDiag.dbHost} | Port: ${dbDiag.dbPort} | Name: ${dbDiag.dbName} | Schema: ${dbDiag.dbSchema} | ProjectRef: ${dbDiag.projectRef}`)
   console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetching ALL rings at ${new Date().toISOString()}`)
 
   // Get count BEFORE query
@@ -309,6 +309,12 @@ export async function getAdminRings() {
 
   console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Rings in DB before fetch: ${countBefore}`)
 
+  // Check schema - query both ways to detect schema/search_path issues
+  const { data: publicSchemaCount } = await supabase.rpc("check_table_count", { schema_name: "public", table_name: "rings" }).single()
+  const { data: defaultSchemaCount } = await supabase.rpc("check_table_count", { schema_name: "", table_name: "rings" }).single()
+  
+  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Public schema count: ${publicSchemaCount?.count || "ERROR"}, Default schema count: ${defaultSchemaCount?.count || "ERROR"}`)
+
   const { data: rings, error } = await supabase
     .from("rings")
     .select("*")
@@ -316,20 +322,39 @@ export async function getAdminRings() {
 
   if (error) {
     console.error(`[v0] [${correlationId}] GET_ADMIN_RINGS: Error:`, error)
-    return { error: error.message, rings: [], diagnostics: { dbHost: dbDiag.dbHost, dbName: dbDiag.dbName, rowsReturned: 0 } }
+    return { 
+      error: error.message, 
+      rings: [], 
+      diagnostics: { 
+        dbHost: dbDiag.dbHost,
+        dbPort: dbDiag.dbPort,
+        dbName: dbDiag.dbName, 
+        dbSchema: dbDiag.dbSchema,
+        projectRef: dbDiag.projectRef,
+        rowsReturned: 0,
+        sourceType: "ERROR",
+      } 
+    }
   }
 
-  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetched ${rings?.length || 0} rings`)
+  console.log(`[v0] [${correlationId}] GET_ADMIN_RINGS: Fetched ${rings?.length || 0} rings from table "rings"`)
 
   return { 
     success: true, 
     rings: rings || [],
     diagnostics: {
       dbHost: dbDiag.dbHost,
+      dbPort: dbDiag.dbPort,
       dbName: dbDiag.dbName,
+      dbSchema: dbDiag.dbSchema,
+      projectRef: dbDiag.projectRef,
       maskedHost: dbDiag.maskedDbHost,
       rowsReturned: rings?.length || 0,
       countBefore: countBefore,
+      sourceType: "TABLE",
+      sourceTable: "rings",
+      schemaCheckPublic: publicSchemaCount?.count,
+      schemaCheckDefault: defaultSchemaCount?.count,
     }
   }
 }
@@ -342,7 +367,7 @@ export async function getPublicRings() {
 
   const supabase = await createClient()
 
-  console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: DB Host: ${dbDiag.dbHost} | DB Name: ${dbDiag.dbName}`)
+  console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: DB Host: ${dbDiag.dbHost} | Port: ${dbDiag.dbPort} | Name: ${dbDiag.dbName} | Schema: ${dbDiag.dbSchema} | ProjectRef: ${dbDiag.projectRef}`)
   console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Fetching active rings at ${new Date().toISOString()}`)
 
   // Get count BEFORE query
@@ -353,6 +378,12 @@ export async function getPublicRings() {
 
   console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Active rings in DB before fetch: ${countBefore}`)
 
+  // Check schema - query both ways to detect schema/search_path issues
+  const { data: publicSchemaCount } = await supabase.rpc("check_table_count", { schema_name: "public", table_name: "rings" }).single()
+  const { data: defaultSchemaCount } = await supabase.rpc("check_table_count", { schema_name: "", table_name: "rings" }).single()
+  
+  console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Public schema count: ${publicSchemaCount?.count || "ERROR"}, Default schema count: ${defaultSchemaCount?.count || "ERROR"}`)
+
   const { data: rings, error } = await supabase
     .from("rings")
     .select("*")
@@ -361,20 +392,39 @@ export async function getPublicRings() {
 
   if (error) {
     console.error(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Error:`, error)
-    return { error: error.message, rings: [], diagnostics: { dbHost: dbDiag.dbHost, dbName: dbDiag.dbName, rowsReturned: 0 } }
+    return { 
+      error: error.message, 
+      rings: [], 
+      diagnostics: { 
+        dbHost: dbDiag.dbHost,
+        dbPort: dbDiag.dbPort,
+        dbName: dbDiag.dbName,
+        dbSchema: dbDiag.dbSchema,
+        projectRef: dbDiag.projectRef,
+        rowsReturned: 0,
+        sourceType: "ERROR",
+      } 
+    }
   }
 
-  console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Fetched ${rings?.length || 0} active rings`)
+  console.log(`[v0] [${correlationId}] GET_PUBLIC_RINGS: Fetched ${rings?.length || 0} active rings from table "rings"`)
 
   return { 
     success: true, 
     rings: rings || [],
     diagnostics: {
       dbHost: dbDiag.dbHost,
+      dbPort: dbDiag.dbPort,
       dbName: dbDiag.dbName,
+      dbSchema: dbDiag.dbSchema,
+      projectRef: dbDiag.projectRef,
       maskedHost: dbDiag.maskedDbHost,
       rowsReturned: rings?.length || 0,
       countBefore: countBefore,
+      sourceType: "TABLE",
+      sourceTable: "rings",
+      schemaCheckPublic: publicSchemaCount?.count,
+      schemaCheckDefault: defaultSchemaCount?.count,
     }
   }
 }
@@ -443,7 +493,7 @@ export async function clearAllRings() {
   const dbDiag = getDbDiagnostics()
   const supabase = await createClient()
 
-  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Write DB Host: ${dbDiag.dbHost} | Port: ${dbDiag.dbPort} | Name: ${dbDiag.dbName} | User: ${dbDiag.dbUser} | Schema: ${dbDiag.dbSchema}`)
+  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Write DB Host: ${dbDiag.dbHost} | Port: ${dbDiag.dbPort} | Name: ${dbDiag.dbName} | Schema: ${dbDiag.dbSchema} | ProjectRef: ${dbDiag.projectRef}`)
   console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Attempting to delete all rings...`)
 
   // First get count for logging
@@ -468,10 +518,12 @@ export async function clearAllRings() {
         dbHost: dbDiag.dbHost,
         dbPort: dbDiag.dbPort,
         dbName: dbDiag.dbName,
-        dbUser: dbDiag.dbUser,
         dbSchema: dbDiag.dbSchema,
+        projectRef: dbDiag.projectRef,
         maskedHost: dbDiag.maskedDbHost,
-        ringsBefore: beforeCount,
+        beforeCount: beforeCount || 0,
+        deletedCount: 0,
+        afterCount: null,
         transactionFailed: true,
       }
     }
@@ -499,19 +551,18 @@ export async function clearAllRings() {
 
   return { 
     success: true, 
-    deletedCount: deletedCount || 0,
     diagnostics: {
       dbHost: dbDiag.dbHost,
       dbPort: dbDiag.dbPort,
       dbName: dbDiag.dbName,
-      dbUser: dbDiag.dbUser,
       dbSchema: dbDiag.dbSchema,
+      projectRef: dbDiag.projectRef,
       maskedHost: dbDiag.maskedDbHost,
-      ringsBefore: beforeCount,
-      ringsAfter: afterCount || 0,
-      deletedRows: deletedCount || 0,
+      beforeCount: beforeCount || 0,
+      deletedCount: deletedCount || 0,
+      afterCount: afterCount || 0,
       transactionFailed: false,
-      message: afterCount && afterCount > 0 ? `WARNING: ${afterCount} rows still in DB after delete!` : "Delete successful",
+      warning: afterCount && afterCount > 0 ? `WARNING: ${afterCount} rows still in DB after delete!` : null,
     }
   }
 }

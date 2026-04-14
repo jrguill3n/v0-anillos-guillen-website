@@ -9,6 +9,7 @@ import { RingFormDialog } from "@/components/admin/ring-form-dialog"
 import { ClearCatalogButton } from "@/components/admin/clear-catalog-button"
 import { DataSourceDebug } from "@/components/admin/data-source-debug"
 import { DiagnosticDialog } from "@/components/admin/diagnostic-dialog"
+import { DbComparisonPanel } from "@/components/admin/db-comparison-panel"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -110,6 +111,20 @@ export default async function AdminDashboardPage() {
       </header>
 
       <main className="container mx-auto px-4 py-6">
+        <div className="mb-6">
+          <DbComparisonPanel 
+            readDiagnostics={{
+              dbHost: dbDiag.dbHost,
+              dbPort: dbDiag.dbPort,
+              dbName: dbDiag.dbName,
+              dbSchema: dbDiag.dbSchema,
+              projectRef: dbDiag.projectRef,
+              rowsReturned: rings?.length || 0,
+              sourceType: "TABLE",
+            }}
+          />
+        </div>
+
         <DataSourceDebug
           pageType="admin"
           ringCount={rings?.length || 0}
