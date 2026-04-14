@@ -36,7 +36,7 @@ export function ClearCatalogButton({ onClear }: ClearCatalogButtonProps) {
       
       const diag = result.diagnostics
       const diagMsg = diag ? 
-        `DB: ${diag.maskedHost} | Antes: ${diag.ringsBefore} | Después: ${diag.ringsAfter} | Eliminados: ${diag.deletedRows}` :
+        `Write DB: ${diag.maskedHost}:${diag.dbPort} (${diag.dbName})\nBefore: ${diag.ringsBefore} | After: ${diag.ringsAfter} | Deleted: ${diag.deletedRows}` :
         `Se eliminaron ${result.deletedCount || 0} anillos`
       
       toast({
@@ -47,9 +47,14 @@ export function ClearCatalogButton({ onClear }: ClearCatalogButtonProps) {
       // Force full page refresh to ensure server re-renders with fresh data
       router.refresh()
     } else {
+      const diag = result.diagnostics
+      const diagMsg = diag ? 
+        `Write DB: ${diag.maskedHost}:${diag.dbPort} (${diag.dbName}) - Transaction failed` :
+        (result.error || "No se pudo vaciar el catálogo")
+      
       toast({
         title: "Error",
-        description: result.error || "No se pudo vaciar el catálogo",
+        description: diagMsg,
         variant: "destructive",
       })
     }

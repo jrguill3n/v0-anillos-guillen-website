@@ -443,7 +443,7 @@ export async function clearAllRings() {
   const dbDiag = getDbDiagnostics()
   const supabase = await createClient()
 
-  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: DB Host: ${dbDiag.dbHost} | DB Name: ${dbDiag.dbName}`)
+  console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Write DB Host: ${dbDiag.dbHost} | Port: ${dbDiag.dbPort} | Name: ${dbDiag.dbName} | User: ${dbDiag.dbUser} | Schema: ${dbDiag.dbSchema}`)
   console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Attempting to delete all rings...`)
 
   // First get count for logging
@@ -461,12 +461,25 @@ export async function clearAllRings() {
 
   if (error) {
     console.error(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Error:`, error)
-    return { error: error.message }
+    return { 
+      success: false,
+      error: error.message,
+      diagnostics: {
+        dbHost: dbDiag.dbHost,
+        dbPort: dbDiag.dbPort,
+        dbName: dbDiag.dbName,
+        dbUser: dbDiag.dbUser,
+        dbSchema: dbDiag.dbSchema,
+        maskedHost: dbDiag.maskedDbHost,
+        ringsBefore: beforeCount,
+        transactionFailed: true,
+      }
+    }
   }
 
   console.log(`[v0] [${correlationId}] CLEAR_ALL_RINGS: Deleted ${deletedCount} rings`)
 
-  // Verify deletion
+  // Verify deletion IMMEDIATELY
   const { count: afterCount } = await supabase
     .from("rings")
     .select("*", { count: "exact", head: true })
@@ -489,11 +502,16 @@ export async function clearAllRings() {
     deletedCount: deletedCount || 0,
     diagnostics: {
       dbHost: dbDiag.dbHost,
+      dbPort: dbDiag.dbPort,
       dbName: dbDiag.dbName,
+      dbUser: dbDiag.dbUser,
+      dbSchema: dbDiag.dbSchema,
       maskedHost: dbDiag.maskedDbHost,
       ringsBefore: beforeCount,
-      ringsAfter: afterCount,
-      deletedRows: deletedCount,
+      ringsAfter: afterCount || 0,
+      deletedRows: deletedCount || 0,
+      transactionFailed: false,
+      message: afterCount && afterCount > 0 ? `WARNING: ${afterCount} rows still in DB after delete!` : "Delete successful",
     }
   }
 }
