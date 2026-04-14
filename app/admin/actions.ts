@@ -90,7 +90,7 @@ export async function createRing(formData: FormData) {
   const ring = {
     code: formData.get("code") as string,
     name: (formData.get("code") as string).toUpperCase(),
-    description: formData.get("description") as string,
+    description: (formData.get("description") as string) || "",
     price: Number.parseFloat(formData.get("price") as string),
     metal_type: "oro",
     metal_karat: formData.get("metal_karat") as string,
@@ -121,7 +121,7 @@ export async function updateRing(id: string, formData: FormData) {
   const ring = {
     code: formData.get("code") as string,
     name: (formData.get("code") as string).toUpperCase(),
-    description: formData.get("description") as string,
+    description: (formData.get("description") as string) || "",
     price: Number.parseFloat(formData.get("price") as string),
     metal_type: "oro",
     metal_karat: formData.get("metal_karat") as string,
