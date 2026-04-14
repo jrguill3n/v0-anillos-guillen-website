@@ -131,6 +131,9 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
                 Descubre nuestra colección de anillos de compromiso. Cada pieza es única y está elaborada con los más
                 altos estándares de calidad.
               </p>
+              <p className="mt-4 text-xs text-muted-foreground">
+                Public rings: <span className="font-mono font-semibold">{validRings.length}</span>
+              </p>
             </div>
 
             {validRings.length === 0 ? (

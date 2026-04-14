@@ -63,9 +63,9 @@ export function ClearCatalogButton({ onClear }: ClearCatalogButtonProps) {
       <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Vaciar el catálogo?</AlertDialogTitle>
+            <AlertDialogTitle>Vaciar catálogo</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción eliminará TODOS los anillos de la base de datos. No se puede deshacer. ¿Estás seguro?
+              Esto eliminará todos los anillos cargados. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -75,7 +75,7 @@ export function ClearCatalogButton({ onClear }: ClearCatalogButtonProps) {
               disabled={isLoading}
               className="bg-destructive hover:bg-destructive/90"
             >
-              {isLoading ? "Eliminando..." : "Vaciar"}
+              {isLoading ? "Eliminando..." : "Sí, vaciar catálogo"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
