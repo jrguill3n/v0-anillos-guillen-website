@@ -117,18 +117,6 @@ export async function createRing(formData: FormData) {
   return { success: true, ring: data }
 }
 
-  const { data, error } = await supabase.from("rings").insert([ring]).select().single()
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidateTag("rings")
-  revalidatePath("/admin/dashboard")
-  revalidatePath("/catalogo")
-  return { success: true, ring: data }
-}
-
 export async function updateRing(id: string, formData: FormData) {
   const supabase = await createClient()
 
