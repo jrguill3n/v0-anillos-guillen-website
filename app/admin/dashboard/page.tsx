@@ -62,16 +62,16 @@ export default async function AdminDashboardPage() {
             </div>
 
             {/* Actions - grid on mobile, row on desktop */}
-            <div className="flex flex-wrap gap-2 sm:gap-3">
+            <div className="flex flex-wrap gap-2 items-center">
               <RingFormDialog mode="create" />
               <AdminRefreshButton />
-              <Button asChild variant="outline" size="sm" className="bg-white border-slate-200 hover:bg-slate-50">
+              <Button asChild variant="outline" className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 h-10 px-4 font-medium">
                 <a href="/api/admin/generate-catalog-pdf" download="catalogo-anillos-guillen.pdf">
                   Descargar PDF
                 </a>
               </Button>
               <form action={logoutAdmin}>
-                <Button variant="outline" size="sm" className="bg-white border-slate-200 hover:bg-slate-50">
+                <Button variant="ghost" className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 h-10 px-4 font-medium">
                   Salir
                 </Button>
               </form>
