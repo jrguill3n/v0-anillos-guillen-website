@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Trash2, Eye, EyeOff, Loader2, RefreshCw } from "lucide-react"
+import { Search, Trash2, Eye, EyeOff, Loader2 } from "lucide-react"
 import { deleteRing, toggleRingActive } from "@/app/admin/actions"
 import { RingFormDialog } from "./ring-form-dialog"
 import {
@@ -48,7 +48,6 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [ringToDelete, setRingToDelete] = useState<Ring | null>(null)
-  const [isRefreshing, setIsRefreshing] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -160,49 +159,47 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
   }
 
   return (
-    <div className="space-y-4">
-      {/* Search and controls bar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por código, nombre o descripción..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+  return (
+    <div className="space-y-6">
+      {/* Search and Sort Section - Premium card style */}
+      <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 sm:p-5">
+        <div className="space-y-3 sm:space-y-0 sm:flex gap-3">
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Buscar anillos..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 bg-white border-slate-200 rounded-md h-10"
+            />
+          </div>
+
+          {/* Sort dropdown */}
+          <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
+            <SelectTrigger className="w-full sm:w-[200px] bg-white border-slate-200 h-10 rounded-md">
+              <SelectValue placeholder="Ordenar" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="price_asc">Precio: menor a mayor</SelectItem>
+              <SelectItem value="price_desc">Precio: mayor a menor</SelectItem>
+              <SelectItem value="name_asc">Nombre: A-Z</SelectItem>
+              <SelectItem value="name_desc">Nombre: Z-A</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
-          <SelectTrigger className="w-full sm:w-[220px]">
-            <SelectValue placeholder="Ordenar" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="price_asc">Precio: menor a mayor</SelectItem>
-            <SelectItem value="price_desc">Precio: mayor a menor</SelectItem>
-            <SelectItem value="name_asc">Nombre: A-Z</SelectItem>
-            <SelectItem value="name_desc">Nombre: Z-A</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Button onClick={() => router.refresh()} disabled={isRefreshing} variant="outline" size="sm" className="gap-2">
-          <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-          <span className="hidden sm:inline">Recargar</span>
-        </Button>
-
-        <RingFormDialog mode="create" onSuccess={() => router.refresh()} />
+        {/* Results count */}
+        <p className="text-xs text-slate-500 mt-3">
+          {filteredAndSortedRings.length} {filteredAndSortedRings.length === 1 ? "anillo" : "anillos"}
+          {searchQuery && ` encontrado${filteredAndSortedRings.length !== 1 ? "s" : ""}`}
+        </p>
       </div>
-
-      {/* Results count */}
-      <p className="text-sm text-muted-foreground">
-        {filteredAndSortedRings.length} {filteredAndSortedRings.length === 1 ? "anillo" : "anillos"}
-        {searchQuery && ` encontrado${filteredAndSortedRings.length !== 1 ? "s" : ""}`}
-      </p>
 
       {/* Ring list */}
       {filteredAndSortedRings.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg">
-          <p className="text-muted-foreground">
+        <div className="text-center py-16 border border-slate-200 rounded-lg bg-slate-50">
+          <p className="text-slate-500">
             {searchQuery ? "No se encontraron anillos" : "No hay anillos en el catálogo"}
           </p>
         </div>
@@ -211,97 +208,87 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
           {filteredAndSortedRings.map((ring) => (
             <div
               key={ring.id}
-              className={`flex gap-4 p-4 bg-card border rounded-lg transition-opacity ${
+              className={`bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-all ${
                 deletingId === ring.id ? "opacity-50 pointer-events-none" : ""
               }`}
             >
-              {/* Left side: Thumbnail + Info */}
-              <div className="flex gap-4 flex-1 min-w-0">
-                {/* Thumbnail */}
-                <div className="relative h-12 w-12 sm:h-10 sm:w-10 rounded overflow-hidden bg-muted flex-shrink-0">
-                  <Image src={ring.image_url || "/placeholder.svg"} alt={ring.name} fill className="object-cover" />
+              <div className="flex gap-4">
+                {/* Thumbnail - left side */}
+                <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-md overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
+                  <Image
+                    src={ring.image_url || "/placeholder.svg"}
+                    alt={ring.code}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0 space-y-2">
+                {/* Info - center */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
+                  {/* Title and badges */}
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="font-semibold text-lg">{ring.code}</span>
-                      {/* DEBUG: Show row identity */}
-                      <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded font-mono">
-                        id: {ring.id.slice(0, 8)}...
-                      </span>
-                      {/* DEBUG: Show slug */}
-                      <span className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-1 rounded font-mono">
-                        slug: {ring.slug}
-                      </span>
+                      <span className="font-semibold text-base text-slate-900">{ring.code}</span>
                       {!ring.is_active && (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs bg-slate-100 text-slate-700 border-0">
                           Inactivo
                         </Badge>
                       )}
                       {ring.featured && (
-                        <Badge variant="default" className="text-xs">
+                        <Badge className="text-xs bg-amber-100 text-amber-900 border-0 hover:bg-amber-100">
                           Destacado
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">{ring.name}</p>
+                    <p className="text-sm text-slate-600 line-clamp-1">{ring.name}</p>
                   </div>
 
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
-                    <span className="font-semibold text-primary">${ring.price.toLocaleString("es-MX")}</span>
-                    <span className="text-muted-foreground">{ring.diamond_points} pts</span>
-                    <span className="text-muted-foreground">
-                      {ring.metal_color} {ring.metal_karat}
-                    </span>
+                  {/* Details - small and compact */}
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 mt-2">
+                    <span className="font-semibold text-slate-900">${ring.price.toLocaleString("es-MX")}</span>
+                    <span>{ring.diamond_points} pts</span>
+                    <span>{ring.metal_color} {ring.metal_karat}</span>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1 flex-shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleToggleActive(ring)}
-                  disabled={togglingId === ring.id}
-                  className="gap-2 w-full sm:w-auto"
-                >
-                  {togglingId === ring.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : ring.is_active ? (
-                    <Eye className="h-4 w-4" />
-                  ) : (
-                    <EyeOff className="h-4 w-4" />
-                  )}
-                  <span className="hidden sm:inline">{ring.is_active ? "Activo" : "Inactivo"}</span>
-                </Button>
+                {/* Actions - right side, compact */}
+                <div className="flex flex-col gap-2 flex-shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleToggleActive(ring)}
+                    disabled={togglingId === ring.id}
+                    className="h-8 px-2 bg-white border-slate-200 text-xs"
+                  >
+                    {togglingId === ring.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : ring.is_active ? (
+                      <Eye className="h-3.5 w-3.5" />
+                    ) : (
+                      <EyeOff className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
 
-                <RingFormDialog
-                  mode="edit"
-                  ring={ring}
-                  onSuccess={() => router.refresh()}
-                />
+                  <RingFormDialog
+                    mode="edit"
+                    ring={ring}
+                    onSuccess={() => router.refresh()}
+                  />
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openDeleteDialog(ring)}
-                  disabled={deletingId === ring.id}
-                  className="gap-2 text-destructive hover:text-destructive w-full sm:w-auto"
-                >
-                  {deletingId === ring.id ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="hidden sm:inline">Eliminando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="h-4 w-4" />
-                      <span className="hidden sm:inline">Eliminar</span>
-                    </>
-                  )}
-                </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openDeleteDialog(ring)}
+                    disabled={deletingId === ring.id}
+                    className="h-8 px-2 bg-white border-slate-200 text-red-600 hover:text-red-700 hover:bg-red-50 text-xs"
+                  >
+                    {deletingId === ring.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           ))}
@@ -320,7 +307,7 @@ export function AdminRingsListServer({ rings: initialRings }: { rings: Ring[] })
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
               Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>

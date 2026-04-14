@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import PDFDocument from "pdfkit"
+
+export const runtime = "nodejs"
 
 export async function GET() {
   try {
@@ -12,74 +15,84 @@ export async function GET() {
 
     if (error) throw error
 
-    // Generate HTML for PDF conversion
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Catálogo Anillos Guillén</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; color: #1a1a1a; }
-    .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #1e3a5f; padding-bottom: 20px; }
-    .header h1 { font-size: 36px; color: #1e3a5f; margin-bottom: 8px; }
-    .header p { font-size: 14px; color: #666; }
-    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; }
-    .ring { break-inside: avoid; page-break-inside: avoid; border: 1px solid #e5e5e5; padding: 20px; }
-    .ring img { width: 100%; height: 250px; object-fit: cover; margin-bottom: 15px; }
-    .ring h3 { font-size: 18px; color: #1e3a5f; margin-bottom: 8px; }
-    .ring .price { font-size: 20px; color: #c8a882; font-weight: bold; margin-bottom: 8px; }
-    .ring .details { font-size: 12px; color: #666; line-height: 1.6; }
-    .ring .details p { margin-bottom: 4px; }
-    @media print {
-      body { padding: 20px; }
-      .grid { gap: 20px; }
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <h1>Anillos Guillén</h1>
-    <p>Catálogo de Anillos de Compromiso</p>
-  </div>
-  <div class="grid">
-    ${rings
-      ?.map(
-        (ring) => `
-      <div class="ring">
-        <img src="${ring.image_url || ""}" alt="${ring.name || ring.code}" />
-        <h3>${ring.code}</h3>
-        ${ring.name && ring.name !== ring.code ? `<p style="font-size: 14px; margin-bottom: 8px;">${ring.name}</p>` : ""}
-        ${ring.price ? `<div class="price">$${ring.price.toLocaleString("es-MX")}</div>` : ""}
-        <div class="details">
-          ${ring.diamond_points ? `<p><strong>Diamante:</strong> ${ring.diamond_points} puntos</p>` : ""}
-          ${ring.metal_type ? `<p><strong>Metal:</strong> ${ring.metal_type}${ring.metal_karat ? ` ${ring.metal_karat}` : ""}${ring.metal_color ? ` ${ring.metal_color}` : ""}</p>` : ""}
-        </div>
-      </div>
-    `,
-      )
-      .join("")}
-  </div>
-  <script>
-    // Automatically trigger print-to-PDF on page load
-    window.addEventListener('load', function() {
-      window.print();
-    });
-  </script>
-</body>
-</html>
-    `
+    // Create a PDF document
+    const doc = new PDFDocument({
+      size: "A4",
+      margin: 40,
+    })
 
-    return new NextResponse(html, {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "Content-Disposition": 'inline; filename="catalogo-anillos-guillen.html"',
-      },
+    // Stream to buffer
+    const chunks: Buffer[] = []
+    doc.on("data", (chunk) => chunks.push(chunk))
+
+    return new Promise((resolve, reject) => {
+      doc.on("end", () => {
+        const pdfBuffer = Buffer.concat(chunks)
+        resolve(
+          new NextResponse(pdfBuffer, {
+            headers: {
+              "Content-Type": "application/pdf",
+              "Content-Disposition": 'attachment; filename="catalogo-anillos-guillen.pdf"',
+              "Content-Length": pdfBuffer.length.toString(),
+            },
+          }),
+        )
+      })
+
+      doc.on("error", (err) => {
+        reject(err)
+      })
+
+      // Add title
+      doc.fontSize(24).font("Helvetica-Bold").text("Anillos Guillén", { align: "center" })
+      doc.fontSize(12).font("Helvetica").text("Catálogo de Anillos de Compromiso", { align: "center", margin: 0 })
+      doc.moveDown()
+
+      // Add rings
+      rings?.forEach((ring, index) => {
+        // Add page break if needed (roughly 3-4 rings per page)
+        if (index > 0 && index % 3 === 0) {
+          doc.addPage()
+        }
+
+        // Ring details
+        doc.fontSize(14).font("Helvetica-Bold").text(ring.code)
+
+        if (ring.name && ring.name !== ring.code) {
+          doc.fontSize(11).font("Helvetica").text(ring.name, { margin: 0 })
+        }
+
+        // Price
+        if (ring.price) {
+          doc
+            .fontSize(13)
+            .font("Helvetica-Bold")
+            .text(`$${ring.price.toLocaleString("es-MX")} MXN`, { margin: 0 })
+        }
+
+        // Diamond info
+        if (ring.diamond_points) {
+          doc.fontSize(10).font("Helvetica").text(`Diamante: ${ring.diamond_points} puntos`, { margin: 0 })
+        }
+
+        // Metal info
+        if (ring.metal_type || ring.metal_karat || ring.metal_color) {
+          const metalInfo = [ring.metal_type, ring.metal_color, ring.metal_karat].filter(Boolean).join(" ")
+          doc.fontSize(10).font("Helvetica").text(`Metal: ${metalInfo}`, { margin: 0 })
+        }
+
+        doc.moveDown(0.5)
+      })
+
+      // Finish the PDF
+      doc.end()
     })
   } catch (error) {
-    console.error("Error generating catalog:", error)
-    return NextResponse.json({ error: "Failed to generate catalog" }, { status: 500 })
+    console.error("Error generating catalog PDF:", error)
+    return NextResponse.json(
+      { error: "Failed to generate catalog PDF", details: error instanceof Error ? error.message : String(error) },
+      { status: 500 },
+    )
   }
 }
 

@@ -27,10 +27,10 @@ export function AdminRefreshButton() {
       onClick={handleRefresh}
       disabled={isRefreshing}
       title="Actualizar la lista desde la base de datos"
-      className="gap-2"
+      className="gap-2 bg-white border-slate-200 hover:bg-slate-50 text-slate-700 h-10 px-4"
     >
       <RotateCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-      <span className="hidden sm:inline">Actualizar</span>
+      <span className="font-medium">Actualizar</span>
     </Button>
   )
 }

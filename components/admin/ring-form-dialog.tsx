@@ -149,116 +149,154 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {mode === "create" ? (
-          <Button className="gap-2">
+          <Button className="gap-2 bg-slate-900 hover:bg-slate-800 h-10 px-4 sm:px-5">
             <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Nuevo anillo</span>
-            <span className="sm:hidden">Nuevo</span>
+            <span className="font-medium">Nuevo anillo</span>
           </Button>
         ) : (
-          <Button variant="outline" size="sm" className="gap-2 bg-transparent w-full sm:w-auto">
-            <Pencil className="h-4 w-4" />
-            <span className="hidden sm:inline">Editar</span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 px-2 bg-white border-slate-200 text-slate-700 hover:bg-slate-50 gap-1"
+          >
+            <Pencil className="h-3.5 w-3.5" />
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{mode === "create" ? "Crear nuevo anillo" : "Editar anillo"}</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-lg">
+        <DialogHeader className="pb-4 border-b border-slate-200">
+          <DialogTitle className="text-xl font-light">
+            {mode === "create" ? "Crear nuevo anillo" : "Editar anillo"}
+          </DialogTitle>
+          <DialogDescription className="text-slate-600">
             {mode === "create" ? "Completa los datos del nuevo anillo" : "Modifica los datos del anillo"}
           </DialogDescription>
         </DialogHeader>
 
-        <form action={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="code">Código *</Label>
-              <Input id="code" name="code" defaultValue={ring?.code} placeholder="Ej: 0122" required />
-            </div>
+        <form action={handleSubmit} className="space-y-6 py-4">
+          {/* Basic Info Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Información básica</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="code" className="text-sm font-medium">
+                  Código *
+                </Label>
+                <Input
+                  id="code"
+                  name="code"
+                  defaultValue={ring?.code}
+                  placeholder="Ej: 0122"
+                  className="bg-slate-50 border-slate-200 h-10 rounded-md"
+                  required
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="price">Precio (MXN) *</Label>
-              <Input
-                id="price"
-                name="price"
-                type="number"
-                step="0.01"
-                defaultValue={ring?.price}
-                placeholder="15000"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="diamond_points">Puntos diamante *</Label>
-              <Input
-                id="diamond_points"
-                name="diamond_points"
-                type="number"
-                step="0.01"
-                defaultValue={ring?.diamond_points}
-                placeholder="13"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="metal_color">Color de oro *</Label>
-              <Select name="metal_color" defaultValue={ring?.metal_color || "amarillo"}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="amarillo">Amarillo</SelectItem>
-                  <SelectItem value="blanco">Blanco</SelectItem>
-                  <SelectItem value="rosa">Rosa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="metal_karat">Kilates *</Label>
-              <Select name="metal_karat" value={goldKarat} onValueChange={setGoldKarat}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10k">10k</SelectItem>
-                  <SelectItem value="14k">14k</SelectItem>
-                  <SelectItem value="18k">18k</SelectItem>
-                  <SelectItem value="24k">24k</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label htmlFor="price" className="text-sm font-medium">
+                  Precio (MXN) *
+                </Label>
+                <Input
+                  id="price"
+                  name="price"
+                  type="number"
+                  step="0.01"
+                  defaultValue={ring?.price}
+                  placeholder="15000"
+                  className="bg-slate-50 border-slate-200 h-10 rounded-md"
+                  required
+                />
+              </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Descripción *</Label>
-            <Textarea
-              id="description"
-              name="description"
-              defaultValue={ring?.description}
-              placeholder="Describe el anillo brevemente..."
-              rows={3}
-              required
-            />
+          {/* Diamond & Metal Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Detalles del anillo</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="diamond_points" className="text-sm font-medium">
+                  Puntos diamante *
+                </Label>
+                <Input
+                  id="diamond_points"
+                  name="diamond_points"
+                  type="number"
+                  step="0.01"
+                  defaultValue={ring?.diamond_points}
+                  placeholder="13"
+                  className="bg-slate-50 border-slate-200 h-10 rounded-md"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="metal_color" className="text-sm font-medium">
+                  Color de oro *
+                </Label>
+                <Select name="metal_color" defaultValue={ring?.metal_color || "amarillo"}>
+                  <SelectTrigger className="bg-slate-50 border-slate-200 h-10 rounded-md">
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="amarillo">Amarillo</SelectItem>
+                    <SelectItem value="blanco">Blanco</SelectItem>
+                    <SelectItem value="rosa">Rosa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="metal_karat" className="text-sm font-medium">
+                  Kilates *
+                </Label>
+                <Select name="metal_karat" value={goldKarat} onValueChange={setGoldKarat}>
+                  <SelectTrigger className="bg-slate-50 border-slate-200 h-10 rounded-md">
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10k">10k</SelectItem>
+                    <SelectItem value="14k">14k</SelectItem>
+                    <SelectItem value="18k">18k</SelectItem>
+                    <SelectItem value="24k">24k</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="image">Imagen del anillo *</Label>
-            <div className="flex flex-col gap-4">
+          {/* Description Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Descripción</h3>
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-sm font-medium">
+                Descripción *
+              </Label>
+              <Textarea
+                id="description"
+                name="description"
+                defaultValue={ring?.description}
+                placeholder="Describe el anillo brevemente..."
+                rows={3}
+                className="bg-slate-50 border-slate-200 rounded-md resize-none"
+                required
+              />
+              <p className="text-xs text-slate-500">Se recomienda una descripción clara y concisa.</p>
+            </div>
+          </div>
+
+          {/* Image Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Imagen</h3>
+            <div className="space-y-3">
               {imagePreview && (
-                <div className="relative w-full aspect-square max-w-xs mx-auto overflow-hidden rounded-lg border">
-                  <img
-                    src={imagePreview || "/placeholder.svg"}
-                    alt="Vista previa"
-                    className="h-full w-full object-cover"
-                  />
+                <div className="relative w-full aspect-square max-w-xs mx-auto overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                  <img src={imagePreview || "/placeholder.svg"} alt="Vista previa" className="h-full w-full object-cover" />
                   <Button
                     type="button"
                     variant="destructive"
                     size="icon"
-                    className="absolute top-2 right-2"
+                    className="absolute top-2 right-2 h-8 w-8 rounded-full bg-red-600 hover:bg-red-700"
                     onClick={handleClearImage}
                   >
                     <X className="h-4 w-4" />
@@ -272,36 +310,49 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
                   accept="image/*"
                   onChange={handleImageUpload}
                   disabled={isUploading}
-                  className="flex-1"
+                  className="flex-1 bg-slate-50 border-slate-200 h-10 rounded-md"
                 />
                 {isUploading && (
-                  <Button type="button" disabled className="gap-2">
+                  <Button type="button" disabled className="gap-2 bg-slate-900">
                     <Upload className="h-4 w-4 animate-pulse" />
-                    Subiendo...
+                    <span className="text-sm">Subiendo...</span>
                   </Button>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Formatos: JPG, PNG, WEBP. Máximo 5MB. Se recomienda cuadrado 800x800px.
-              </p>
+              <p className="text-xs text-slate-500">JPG, PNG, WEBP. Máximo 5MB. Se recomienda 800x800px.</p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div>
-              <Label htmlFor="is_active" className="font-medium">
-                Activo
-              </Label>
-              <p className="text-sm text-muted-foreground">Visible en el catálogo</p>
+          {/* Status Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Estado</h3>
+            <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-lg">
+              <div>
+                <Label htmlFor="is_active" className="font-medium text-sm">
+                  Publicado
+                </Label>
+                <p className="text-xs text-slate-500 mt-0.5">Visible en el catálogo público</p>
+              </div>
+              <Switch id="is_active" checked={isActive} onCheckedChange={setIsActive} />
             </div>
-            <Switch id="is_active" checked={isActive} onCheckedChange={setIsActive} />
           </div>
 
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={isSubmitting}
+              className="bg-white border-slate-200 h-10"
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isUploading || !imageUrl || isSubmitting}>
+            <Button
+              type="submit"
+              disabled={isUploading || !imageUrl || isSubmitting}
+              className="bg-slate-900 hover:bg-slate-800 h-10"
+            >
               {isSubmitting ? "Guardando..." : mode === "create" ? "Crear anillo" : "Guardar cambios"}
             </Button>
           </div>
