@@ -166,66 +166,101 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
 
       <Navigation />
-      <main className="min-h-screen py-16">
-        <div className="container mx-auto max-w-7xl px-4">
+      <main className="min-h-screen bg-white">
+        <div className="container mx-auto max-w-6xl px-4 py-8 md:py-12">
+          {/* Back Link */}
           <Link
             href="/catalogo"
-            className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="mb-12 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
             Volver al catálogo
           </Link>
 
-          <div className="grid gap-8 lg:grid-cols-2">
-            <div className="overflow-hidden rounded-lg bg-secondary relative aspect-square">
-              <Image
-                src={ring.image_url || "/placeholder.svg?height=1200&width=1200"}
-                alt={`${safeCode} - ${safeName}`}
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-                priority
-              />
+          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+            {/* Image Section */}
+            <div className="flex items-center justify-center">
+              <div className="relative w-full overflow-hidden rounded-sm bg-slate-50">
+                <Image
+                  src={ring.image_url || "/placeholder.svg?height=800&width=800"}
+                  alt={`${safeCode} - ${safeName}`}
+                  width={800}
+                  height={800}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-contain w-full h-auto"
+                  priority
+                />
+              </div>
             </div>
 
+            {/* Content Section */}
             <div className="flex flex-col">
-              <h1 className="mb-2 font-serif text-4xl font-bold tracking-tight md:text-5xl">{safeCode}</h1>
-              {safeName && safeName !== safeCode && <p className="mb-6 text-lg text-muted-foreground">{safeName}</p>}
-
-              <p className="mb-6 text-3xl font-semibold text-primary">${safePrice.toLocaleString("es-MX")} MXN</p>
-
-              <div className="mb-6 space-y-3 border-y border-border py-6">
-                {safeDiamondPoints && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Diamante:</span>
-                    <span className="font-medium">{safeDiamondPoints} puntos</span>
-                  </div>
-                )}
-                {(ring.metal_color || ring.metal_karat) && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Oro:</span>
-                    <span className="font-medium">{metalInfo}</span>
-                  </div>
-                )}
+              {/* Title and Code */}
+              <div className="mb-8 md:mb-10">
+                <p className="text-sm tracking-widest text-muted-foreground uppercase mb-3">{safeCode}</p>
+                <h1 className="font-serif text-4xl md:text-5xl font-light tracking-tight mb-6">
+                  Anillo de Compromiso
+                </h1>
               </div>
 
-              <div className="mb-8">
-                <h2 className="mb-3 font-serif text-xl font-semibold">Descripción</h2>
-                <p className="text-muted-foreground leading-relaxed">{generatedDescription}</p>
+              {/* Price */}
+              <div className="mb-8 md:mb-10">
+                <p className="text-4xl md:text-5xl font-light tracking-tight">
+                  ${safePrice.toLocaleString("es-MX")}
+                  <span className="text-lg text-muted-foreground ml-2">MXN</span>
+                </p>
               </div>
 
-              <Button asChild size="lg" className="mt-auto text-base">
+              {/* Specifications */}
+              <div className="mb-8 md:mb-12 pb-8 md:pb-10 border-b border-slate-200">
+                <div className="space-y-4">
+                  {safeDiamondPoints && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Diamante</span>
+                      <span className="text-base font-light">{safeDiamondPoints} puntos</span>
+                    </div>
+                  )}
+                  {(ring.metal_color || ring.metal_karat) && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Oro</span>
+                      <span className="text-base font-light">{metalInfo}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Description */}
+              {generatedDescription && (
+                <div className="mb-10 md:mb-12">
+                  <p className="text-base leading-relaxed text-slate-700">{generatedDescription}</p>
+                </div>
+              )}
+
+              {/* Support Text */}
+              <div className="mb-8 md:mb-10 pb-8 md:pb-10 border-b border-slate-200">
+                <p className="text-sm text-muted-foreground">
+                  Atención personalizada previa cita. Te asesoramos por WhatsApp y en tienda.
+                </p>
+              </div>
+
+              {/* CTA Button */}
+              <Button
+                asChild
+                size="lg"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-normal rounded-sm py-6 text-base mb-4"
+              >
                 <a
                   href={`https://wa.me/${whatsappPhone}?text=${whatsappMessage}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Información adicional por WhatsApp
+                  Cotizar por WhatsApp
                 </a>
               </Button>
 
-              <p className="mt-4 text-center text-sm text-muted-foreground">
-                Te responderemos a la brevedad para ayudarte con tu elección
+              {/* Secondary CTA Text */}
+              <p className="text-center text-sm text-muted-foreground">
+                Respuesta rápida • Sin compromiso
               </p>
             </div>
           </div>
