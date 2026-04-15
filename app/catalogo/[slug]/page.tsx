@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Metadata } from "next"
-import { formatGoldInfo, formatKarat, formatRingDescription } from "@/lib/utils"
+import { formatGoldInfo } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -34,16 +34,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://anillosguillen.com"
     const pageUrl = `${baseUrl}/catalogo/${ring.slug}`
 
-    const description = formatRingDescription(
-      ring.description,
-      safeCode,
-      safeDiamondPoints,
-      ring.metal_color,
-      ring.metal_karat,
-    )
-
+    const description = `Anillo de compromiso código ${safeCode} con diamante natural ${safeDiamondPoints ? `de ${safeDiamondPoints} puntos` : ''} en ${formatGoldInfo(ring.metal_color)}. Diseño exclusivo, Acapulco.`
+    
     // Build a more SEO-optimized title with metal/diamond info
-    const metalInfo = formatGoldInfo(ring.metal_color, ring.metal_karat)
+    const metalInfo = formatGoldInfo(ring.metal_color)
     const diamondInfo = safeDiamondPoints ? `de ${safeDiamondPoints} puntos` : ""
     const pageTitle =
       diamondInfo && ring.metal_color && ring.metal_karat
@@ -57,7 +51,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         safeCode,
         "anillo de compromiso",
         ring.metal_color || "oro",
-        `${ring.metal_karat}K` || "14K",
+        "14K",
         safeDiamondPoints ? `${safeDiamondPoints} puntos` : "",
         "diamante natural",
         "Acapulco",
@@ -179,14 +173,14 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
       url: pageUrl,
       itemCondition: "https://schema.org/NewCondition",
     },
-    material: `${ring.metal_type || "oro"} ${ring.metal_color || ""} ${formatKarat(ring.metal_karat)}`.trim(),
+    material: `${ring.metal_type || "oro"} ${metalInfo}`.trim(),
     additionalProperty: [
       safeDiamondPoints && {
         "@type": "PropertyValue",
         name: "Diamante",
         value: `${safeDiamondPoints} puntos`,
       },
-      (ring.metal_color || ring.metal_karat) && {
+      ring.metal_color && {
         "@type": "PropertyValue",
         name: "Oro",
         value: metalInfo,
@@ -262,7 +256,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
                       <span className="text-base font-light">{safeDiamondPoints} puntos</span>
                     </div>
                   )}
-                  {(ring.metal_color || ring.metal_karat) && (
+                  {(ring.metal_color) && (
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Oro</span>
                       <span className="text-base font-light">{metalInfo}</span>
@@ -270,13 +264,6 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
                   )}
                 </div>
               </div>
-
-              {/* Description */}
-              {generatedDescription && (
-                <div className="mb-10 md:mb-12">
-                  <p className="text-base leading-relaxed text-slate-700">{generatedDescription}</p>
-                </div>
-              )}
 
               {/* Support Text */}
               <div className="mb-8 md:mb-10 pb-8 md:pb-10 border-b border-slate-200">
@@ -315,7 +302,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
               </h2>
               <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
                 {relatedRings.map((relatedRing) => {
-                  const relatedMetalInfo = formatGoldInfo(relatedRing.metal_color, relatedRing.metal_karat)
+                  const relatedMetalInfo = formatGoldInfo(relatedRing.metal_color)
                   return (
                     <Link key={relatedRing.id} href={`/catalogo/${relatedRing.slug}`}>
                       <div className="group overflow-hidden rounded-sm transition-all duration-300 hover:shadow-lg">
