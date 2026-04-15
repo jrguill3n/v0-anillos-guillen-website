@@ -76,22 +76,11 @@ export async function GET(request: Request) {
       errorStack = err instanceof Error ? err.stack : ""
     })
 
-    console.error("[PDF] Adding minimal content")
-    stepReached = "pdf_content_adding"
+    // CRITICAL: Set up the Promise BEFORE adding content or calling end()
+    console.error("[PDF] Creating Promise and attaching end handler")
+    stepReached = "pdf_promise_setup"
 
-    doc.fontSize(24).font("Helvetica-Bold").text("Catálogo de Anillos Guillén", { align: "center" })
-    doc.moveDown()
-    doc.fontSize(12).font("Helvetica").text(`Total de anillos: ${ringsCount}`, { align: "center" })
-
-    console.error("[PDF] Content added, calling doc.end()")
-    stepReached = "pdf_end_called"
-    doc.end()
-
-    console.error("[PDF] Waiting for PDF to finish...")
-    stepReached = "pdf_waiting_for_end"
-
-    // Wait for PDF to finish and return it
-    return new Promise<NextResponse>((resolve, reject) => {
+    const pdfPromise = new Promise<NextResponse>((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         console.error("[PDF] TIMEOUT waiting for PDF end event")
         stepReached = "pdf_timeout"
@@ -130,6 +119,22 @@ export async function GET(request: Request) {
         resolve(response)
       })
     })
+
+    console.error("[PDF] Adding minimal content")
+    stepReached = "pdf_content_adding"
+
+    doc.fontSize(24).font("Helvetica-Bold").text("Catálogo de Anillos Guillén", { align: "center" })
+    doc.moveDown()
+    doc.fontSize(12).font("Helvetica").text(`Total de anillos: ${ringsCount}`, { align: "center" })
+
+    console.error("[PDF] Content added, calling doc.end()")
+    stepReached = "pdf_end_called"
+    doc.end()
+
+    console.error("[PDF] Waiting for PDF Promise to resolve...")
+    stepReached = "pdf_waiting_for_promise"
+
+    return pdfPromise
   } catch (error) {
     console.error("[PDF] CATCH - Top-level error:", error)
     if (error instanceof Error) {
