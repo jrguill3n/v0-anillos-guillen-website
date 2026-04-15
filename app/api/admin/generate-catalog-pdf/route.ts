@@ -86,25 +86,10 @@ export async function GET(request: Request) {
       })
     }
 
-    // Pre-fetch all images
-    console.error("[PDF Route] Starting image fetch")
-    stepReached = "image_fetch_started"
-    const ringDataWithImages: Array<{
-      ring: (typeof rings)[0]
-      imageBuffer: Buffer | null
-    }> = []
-
-    if (rings && rings.length > 0) {
-      for (const ring of rings) {
-        let imageBuffer: Buffer | null = null
-        if (ring.image_url) {
-          imageBuffer = await fetchImageBuffer(ring.image_url)
-        }
-        ringDataWithImages.push({ ring, imageBuffer })
-      }
-    }
-    console.error("[PDF Route] Image fetch complete")
-    stepReached = "image_fetch_done"
+    // Skip image fetching for now - focus on getting PDF working first
+    console.error("[PDF Route] Creating ringData array (no image fetch)")
+    stepReached = "ring_data_prepared"
+    const ringDataWithImages = rings?.map((ring) => ({ ring, imageBuffer: null })) || []
 
     // Create PDF document
     console.error("[PDF Route] Creating PDFDocument")
@@ -188,24 +173,7 @@ export async function GET(request: Request) {
 
           let contentY = yPos + 10
 
-          // Image
-          if (imageBuffer) {
-            try {
-              const imgHeight = 90
-              const imgWidth = 70
-              doc.image(imageBuffer, xPos + (cardWidth - imgWidth) / 2, contentY, {
-                width: imgWidth,
-                height: imgHeight,
-                fit: [imgWidth, imgHeight],
-              })
-              contentY += imgHeight + 5
-            } catch (imgErr) {
-              console.error(`[PDF Route] Failed to render image for ${ring.code}:`, imgErr)
-              contentY += 5
-            }
-          }
-
-          // Code
+          // Ring details (no image)
           doc.fontSize(11).font("Helvetica-Bold").text(ring.code, xPos + 5, contentY, { width: cardWidth - 10 })
           contentY += 16
 
