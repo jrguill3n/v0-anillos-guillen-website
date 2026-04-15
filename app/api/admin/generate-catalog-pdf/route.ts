@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import PDFDocument from "pdfkit"
+import { jsPDF } from "jspdf"
 
 export const runtime = "nodejs"
 
@@ -11,7 +11,6 @@ export async function GET(request: Request) {
   let stepReached = "init"
   let ringsCount = 0
   let errorMsg = ""
-  let errorStack = ""
 
   try {
     console.error("[PDF] Route entered, debugMode=", debugMode)
@@ -53,95 +52,62 @@ export async function GET(request: Request) {
       })
     }
 
-    // PHASE 1: Minimal PDF
-    console.error("[PDF] Creating PDFDocument")
-    stepReached = "pdf_doc_creating"
+    // PHASE 1: Minimal PDF using jsPDF
+    console.error("[PDF] Creating jsPDF document")
+    stepReached = "pdf_creating"
 
-    const doc = new PDFDocument({ size: "A4", margin: 40 })
-    const chunks: Buffer[] = []
-
-    console.error("[PDF] Attaching data handler")
-    stepReached = "pdf_data_handler_attached"
-
-    doc.on("data", (chunk) => {
-      console.error("[PDF] Received data chunk, size:", chunk.length)
-      chunks.push(chunk)
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
     })
 
-    console.error("[PDF] Setting up error handler")
-    doc.on("error", (err) => {
-      console.error("[PDF] PDFDocument error event:", err)
-      stepReached = "pdf_error_event"
-      errorMsg = err instanceof Error ? err.message : String(err)
-      errorStack = err instanceof Error ? err.stack : ""
-    })
+    console.error("[PDF] jsPDF document created")
+    stepReached = "pdf_created"
 
-    // CRITICAL: Set up the Promise BEFORE adding content or calling end()
-    console.error("[PDF] Creating Promise and attaching end handler")
-    stepReached = "pdf_promise_setup"
-
-    const pdfPromise = new Promise<NextResponse>((resolve, reject) => {
-      const timeoutId = setTimeout(() => {
-        console.error("[PDF] TIMEOUT waiting for PDF end event")
-        stepReached = "pdf_timeout"
-        reject(new Error("PDF generation timeout"))
-      }, 5000)
-
-      doc.on("end", () => {
-        clearTimeout(timeoutId)
-        console.error("[PDF] PDF end event received")
-        stepReached = "pdf_end_event"
-
-        if (chunks.length === 0) {
-          console.error("[PDF] ERROR: No chunks collected!")
-          stepReached = "pdf_no_chunks"
-          reject(new Error("No PDF data collected"))
-          return
-        }
-
-        console.error("[PDF] Concatenating", chunks.length, "chunks")
-        const pdfBuffer = Buffer.concat(chunks)
-        console.error("[PDF] PDF buffer created, size:", pdfBuffer.length)
-        stepReached = "pdf_buffer_created"
-
-        console.error("[PDF] Creating NextResponse")
-        const response = new NextResponse(pdfBuffer, {
-          status: 200,
-          headers: {
-            "Content-Type": "application/pdf",
-            "Content-Disposition": 'attachment; filename="catalogo-anillos-guillen.pdf"',
-            "Content-Length": pdfBuffer.length.toString(),
-          },
-        })
-        console.error("[PDF] NextResponse created successfully")
-        stepReached = "pdf_response_created"
-
-        resolve(response)
-      })
-    })
-
-    console.error("[PDF] Adding minimal content")
+    // Add minimal content
+    console.error("[PDF] Adding content")
     stepReached = "pdf_content_adding"
 
-    doc.fontSize(24).font("Helvetica-Bold").text("Catálogo de Anillos Guillén", { align: "center" })
-    doc.moveDown()
-    doc.fontSize(12).font("Helvetica").text(`Total de anillos: ${ringsCount}`, { align: "center" })
+    doc.setFontSize(24)
+    doc.text("Catálogo de Anillos Guillén", 105, 40, { align: "center" })
 
-    console.error("[PDF] Content added, calling doc.end()")
-    stepReached = "pdf_end_called"
-    doc.end()
+    doc.setFontSize(12)
+    doc.text(`Total de anillos: ${ringsCount}`, 105, 60, { align: "center" })
 
-    console.error("[PDF] Waiting for PDF Promise to resolve...")
-    stepReached = "pdf_waiting_for_promise"
+    doc.setFontSize(10)
+    doc.text(`Generado: ${new Date().toLocaleString("es-MX")}`, 105, 80, { align: "center" })
 
-    return pdfPromise
+    console.error("[PDF] Content added")
+    stepReached = "pdf_content_added"
+
+    // Generate PDF buffer
+    console.error("[PDF] Generating buffer")
+    stepReached = "pdf_generating_buffer"
+
+    const pdfBuffer = Buffer.from(doc.output("arraybuffer"))
+
+    console.error("[PDF] Buffer created, size:", pdfBuffer.length)
+    stepReached = "pdf_buffer_created"
+
+    // Return PDF response
+    console.error("[PDF] Creating response")
+    stepReached = "pdf_creating_response"
+
+    return new NextResponse(pdfBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": 'attachment; filename="catalogo-anillos-guillen.pdf"',
+        "Content-Length": pdfBuffer.length.toString(),
+      },
+    })
   } catch (error) {
     console.error("[PDF] CATCH - Top-level error:", error)
     if (error instanceof Error) {
       console.error("[PDF] Error message:", error.message)
       console.error("[PDF] Error stack:", error.stack)
       errorMsg = error.message
-      errorStack = error.stack
     } else {
       errorMsg = String(error)
     }
@@ -155,7 +121,6 @@ export async function GET(request: Request) {
           stepReached,
           ringsCount,
           errorMsg,
-          errorStack,
         },
         { status: 500 },
       )
