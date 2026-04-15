@@ -47,6 +47,26 @@ export async function GET() {
     const chunks: Buffer[] = []
     doc.on("data", (chunk) => chunks.push(chunk))
 
+    // Process rings and fetch images before creating PDF content
+    const ringDataWithImages: Array<{
+      ring: (typeof rings)[0]
+      imageBuffer: Buffer | null
+    }> = []
+
+    if (rings && rings.length > 0) {
+      for (const ring of rings) {
+        let imageBuffer: Buffer | null = null
+        if (ring.image_url) {
+          try {
+            imageBuffer = await fetchImageBuffer(ring.image_url)
+          } catch (err) {
+            console.error(`Failed to fetch image for ring ${ring.code}:`, err)
+          }
+        }
+        ringDataWithImages.push({ ring, imageBuffer })
+      }
+    }
+
     return new Promise((resolve, reject) => {
       doc.on("end", () => {
         const pdfBuffer = Buffer.concat(chunks)
@@ -84,79 +104,72 @@ export async function GET() {
       const cardWidth = (pageWidth - 10) / cardsPerRow // 10 is gap
       const cardHeight = 200
 
-      let currentCard = 0
       let cardsOnPage = 0
-      const cardsPerPage = 3 // 3 cards per page (2x2 grid with space) = 6 cards per 2-page layout
 
-      // Process rings
-      if (rings && rings.length > 0) {
-        for (const ring of rings) {
-          // Calculate position
-          const rowIndex = cardsOnPage % 2
-          const pagePosition = Math.floor(cardsOnPage / 2)
+      // Render rings with pre-fetched images
+      for (const { ring, imageBuffer } of ringDataWithImages) {
+        // Calculate position
+        const rowIndex = cardsOnPage % 2
+        const pagePosition = Math.floor(cardsOnPage / 2)
 
-          // Add new page if needed
-          if (pagePosition > 0 && cardsOnPage % 2 === 0) {
-            doc.addPage()
-            cardsOnPage = 0
-          }
-
-          const xPos = 30 + rowIndex * (cardWidth + 10)
-          const yPos = 30 + (cardsOnPage % 2) * (cardHeight + 20)
-
-          // Draw card background (subtle border)
-          doc.rect(xPos, yPos, cardWidth, cardHeight).stroke("#e5e7eb")
-
-          let contentY = yPos + 10
-
-          // Try to add ring image
-          if (ring.image_url) {
-            try {
-              const imageBuffer = await fetchImageBuffer(ring.image_url)
-              if (imageBuffer) {
-                const imgHeight = 100
-                doc.image(imageBuffer, xPos + (cardWidth - 80) / 2, contentY, {
-                  width: 80,
-                  height: imgHeight,
-                  fit: [80, imgHeight],
-                })
-                contentY += imgHeight + 5
-              }
-            } catch {
-              // Skip image on error
-            }
-          }
-
-          // Ring code
-          doc.fontSize(12).font("Helvetica-Bold").text(ring.code, xPos + 5, contentY, { width: cardWidth - 10 })
-          contentY += 18
-
-          // Price
-          if (ring.price) {
-            doc.fontSize(11).font("Helvetica-Bold")
-            doc.text(`$${ring.price.toLocaleString("es-MX")} MXN`, xPos + 5, contentY, { width: cardWidth - 10 })
-            contentY += 15
-          }
-
-          // Diamond info
-          const diamondDisplay = formatDiamondTotal(
-            ring.main_diamond_points || ring.diamond_points,
-            ring.side_diamond_points,
-          )
-          doc.fontSize(9).font("Helvetica").text(`Diamante natural: ${diamondDisplay}`, xPos + 5, contentY, {
-            width: cardWidth - 10,
-          })
-          contentY += 12
-
-          // Gold info
-          const goldColor = ring.metal_color || "Amarillo"
-          const goldDisplay = `${goldColor.charAt(0).toUpperCase() + goldColor.slice(1).toLowerCase()} 14K`
-          doc.fontSize(9).font("Helvetica").text(`Oro: ${goldDisplay}`, xPos + 5, contentY, {
-            width: cardWidth - 10,
-          })
-
-          cardsOnPage++
+        // Add new page if needed
+        if (pagePosition > 0 && cardsOnPage % 2 === 0) {
+          doc.addPage()
+          cardsOnPage = 0
         }
+
+        const xPos = 30 + rowIndex * (cardWidth + 10)
+        const yPos = 30 + (cardsOnPage % 2) * (cardHeight + 20)
+
+        // Draw card background (subtle border)
+        doc.rect(xPos, yPos, cardWidth, cardHeight).stroke("#e5e7eb")
+
+        let contentY = yPos + 10
+
+        // Add ring image if available
+        if (imageBuffer) {
+          try {
+            const imgHeight = 100
+            doc.image(imageBuffer, xPos + (cardWidth - 80) / 2, contentY, {
+              width: 80,
+              height: imgHeight,
+              fit: [80, imgHeight],
+            })
+            contentY += imgHeight + 5
+          } catch (err) {
+            console.error(`Failed to render image for ring ${ring.code}:`, err)
+          }
+        }
+
+        // Ring code
+        doc.fontSize(12).font("Helvetica-Bold").text(ring.code, xPos + 5, contentY, { width: cardWidth - 10 })
+        contentY += 18
+
+        // Price
+        if (ring.price) {
+          doc.fontSize(11).font("Helvetica-Bold")
+          doc.text(`$${ring.price.toLocaleString("es-MX")} MXN`, xPos + 5, contentY, { width: cardWidth - 10 })
+          contentY += 15
+        }
+
+        // Diamond info
+        const diamondDisplay = formatDiamondTotal(
+          ring.main_diamond_points || ring.diamond_points,
+          ring.side_diamond_points,
+        )
+        doc.fontSize(9).font("Helvetica").text(`Diamante natural: ${diamondDisplay}`, xPos + 5, contentY, {
+          width: cardWidth - 10,
+        })
+        contentY += 12
+
+        // Gold info
+        const goldColor = ring.metal_color || "Amarillo"
+        const goldDisplay = `${goldColor.charAt(0).toUpperCase() + goldColor.slice(1).toLowerCase()} 14K`
+        doc.fontSize(9).font("Helvetica").text(`Oro: ${goldDisplay}`, xPos + 5, contentY, {
+          width: cardWidth - 10,
+        })
+
+        cardsOnPage++
       }
 
       // Add footer with contact info on last page
