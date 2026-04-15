@@ -200,7 +200,7 @@ export default async function LandingPage() {
                           <span className="text-sm font-normal text-muted-foreground">MXN</span>
                         </p>
                         <p className="mt-0.5 text-sm text-muted-foreground">
-                          {ring.diamond_points} pts · {formatGoldInfo(ring.metal_color, ring.metal_karat)}
+                          {ring.diamond_points} pts · {formatGoldInfo(ring.metal_color)}
                         </p>
                       </div>
 

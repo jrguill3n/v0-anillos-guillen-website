@@ -198,7 +198,7 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
                           </p>
                           <div className="space-y-1 text-xs md:text-sm text-muted-foreground">
                             <p>Diamante: {ring.diamond_points || 0} puntos</p>
-                            <p>Oro: {formatGoldInfo(ring.metal_color, ring.metal_karat)}</p>
+                            <p>Oro: {formatGoldInfo(ring.metal_color)}</p>
                           </div>
                         </CardContent>
                       </Card>

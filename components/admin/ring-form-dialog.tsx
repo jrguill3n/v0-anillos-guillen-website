@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -49,7 +48,6 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
   const [isActive, setIsActive] = useState(ring?.is_active ?? true)
   const [imageUrl, setImageUrl] = useState(ring?.image_url ?? "")
   const [imagePreview, setImagePreview] = useState(ring?.image_url ?? "")
-  const [goldKarat, setGoldKarat] = useState("")
   const [isUploading, setIsUploading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
@@ -61,14 +59,11 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
       setIsActive(ring.is_active ?? true)
       setImageUrl(ring.image_url ?? "")
       setImagePreview(ring.image_url ?? "")
-      const karat = ring.metal_karat || ""
-      setGoldKarat(karat.toLowerCase().includes("k") ? karat.toLowerCase() : karat ? `${karat}k` : "14k")
     } else if (!ring && open) {
       setFeatured(false)
       setIsActive(true)
       setImageUrl("")
       setImagePreview("")
-      setGoldKarat("14k")
     }
   }, [ring, open])
 
@@ -118,7 +113,6 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
     formData.set("featured", featured.toString())
     formData.set("is_active", isActive.toString())
     formData.set("image_url", imageUrl)
-    formData.set("metal_karat", goldKarat)
 
     const result = mode === "create" ? await createRing(formData) : await updateRing(ring!.id, formData)
 
@@ -244,42 +238,6 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="metal_karat" className="text-sm font-medium text-slate-900">
-                  Kilates *
-                </Label>
-                <Select name="metal_karat" value={goldKarat} onValueChange={setGoldKarat}>
-                  <SelectTrigger className="bg-slate-50 border border-slate-200 h-11 rounded-lg text-sm transition-colors hover:border-slate-300 focus:border-slate-400 focus:ring-0">
-                    <SelectValue placeholder="Seleccionar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10k">10k</SelectItem>
-                    <SelectItem value="14k">14k</SelectItem>
-                    <SelectItem value="18k">18k</SelectItem>
-                    <SelectItem value="24k">24k</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          {/* Description Section */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Descripción</h3>
-            <div className="space-y-2">
-              <Label htmlFor="description" className="text-sm font-medium">
-                Descripción
-              </Label>
-              <Textarea
-                id="description"
-                name="description"
-                defaultValue={ring?.description}
-                placeholder="Describe el anillo brevemente... (opcional)"
-                rows={3}
-                className="bg-slate-50 border border-slate-200 rounded-xl resize-none text-sm transition-colors hover:border-slate-300 focus:border-slate-400"
-              />
-              <p className="text-xs text-slate-500">Se recomienda una descripción clara y concisa.</p>
             </div>
           </div>
 
