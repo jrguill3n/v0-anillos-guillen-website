@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { createClient, logDbConnection } from "@/lib/supabase/server"
-import { formatGoldInfo } from "@/lib/utils"
+import { formatGoldInfo, formatDiamondInfo } from "@/lib/utils"
 import { Heart, MapPin, MessageCircle, Shield, Gem, Check } from "lucide-react"
 
 export const metadata: Metadata = {
@@ -200,7 +200,7 @@ export default async function LandingPage() {
                           <span className="text-sm font-normal text-muted-foreground">MXN</span>
                         </p>
                         <p className="mt-0.5 text-sm text-muted-foreground">
-                          {ring.diamond_points} pts · {formatGoldInfo(ring.metal_color)}
+                          {formatDiamondInfo(ring.main_diamond_points || ring.diamond_points, ring.side_diamond_points)} · {formatGoldInfo(ring.metal_color)}
                         </p>
                       </div>
 

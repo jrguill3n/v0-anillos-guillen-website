@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Metadata } from "next"
-import { formatGoldInfo } from "@/lib/utils"
+import { formatGoldInfo, formatDiamondInfo } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -244,12 +244,12 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
               {/* Specifications */}
               <div className="mb-8 md:mb-12 pb-8 md:pb-10 border-b border-slate-200">
                 <div className="space-y-4">
-                  {safeDiamondPoints && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Diamante natural</span>
-                      <span className="text-base font-light">{safeDiamondPoints} puntos</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Diamante natural</span>
+                    <span className="text-base font-light">
+                      {formatDiamondInfo(ring.main_diamond_points || safeDiamondPoints, ring.side_diamond_points)}
+                    </span>
+                  </div>
                   {(ring.metal_color) && (
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Oro</span>
