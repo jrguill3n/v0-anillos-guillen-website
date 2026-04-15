@@ -20,7 +20,8 @@ async function fetchImageBuffer(url: string): Promise<Buffer | null> {
     const response = await fetch(url)
     if (!response.ok) return null
     return Buffer.from(await response.arrayBuffer())
-  } catch {
+  } catch (err) {
+    console.error(`Failed to fetch image from ${url}:`, err)
     return null
   }
 }
@@ -34,7 +35,9 @@ export async function GET() {
       .eq("is_active", true)
       .order("order_index", { ascending: true })
 
-    if (error) throw error
+    if (error) {
+      throw new Error(`Database error: ${error.message}`)
+    }
 
     // Create PDF document
     const doc = new PDFDocument({
@@ -57,11 +60,7 @@ export async function GET() {
       for (const ring of rings) {
         let imageBuffer: Buffer | null = null
         if (ring.image_url) {
-          try {
-            imageBuffer = await fetchImageBuffer(ring.image_url)
-          } catch (err) {
-            console.error(`Failed to fetch image for ring ${ring.code}:`, err)
-          }
+          imageBuffer = await fetchImageBuffer(ring.image_url)
         }
         ringDataWithImages.push({ ring, imageBuffer })
       }
@@ -82,111 +81,113 @@ export async function GET() {
       })
 
       doc.on("error", (err) => {
+        console.error("PDFKit error:", err)
         reject(err)
       })
 
-      // ========== COVER PAGE ==========
-      doc.fontSize(48).font("Helvetica-Bold").text("Anillos Guillén", { align: "center" })
-      doc.fontSize(16).font("Helvetica-Light").text("Catálogo de Anillos de Compromiso", { align: "center", margin: 0 })
-      doc.moveDown(0.5)
-      doc.fontSize(12).font("Helvetica").text("Oro de 14K con Diamante Natural Certificado", { align: "center", margin: 0 })
-      doc.moveDown(3)
-      doc.fontSize(11).font("Helvetica").text("Atención personalizada por WhatsApp", { align: "center" })
-      doc.fontSize(11).font("Helvetica").text("+52 74 44 49 67 69", { align: "center" })
+      try {
+        // ========== COVER PAGE ==========
+        doc.fontSize(48).font("Helvetica-Bold").text("Anillos Guillén", { align: "center" })
+        doc.fontSize(16).font("Helvetica-Light").text("Catálogo de Anillos de Compromiso", { align: "center", margin: 0 })
+        doc.moveDown(0.5)
+        doc.fontSize(12).font("Helvetica").text("Oro de 14K con Diamante Natural Certificado", { align: "center", margin: 0 })
+        doc.moveDown(3)
+        doc.fontSize(11).font("Helvetica").text("Atención personalizada por WhatsApp", { align: "center" })
+        doc.fontSize(11).font("Helvetica").text("+52 74 44 49 67 69", { align: "center" })
 
-      // Add page break
-      doc.addPage()
+        // Add page break
+        doc.addPage()
 
-      // ========== RINGS GRID ==========
-      const pageHeight = doc.page.height - 60 // Accounting for margins
-      const pageWidth = doc.page.width - 60
-      const cardsPerRow = 2
-      const cardWidth = (pageWidth - 10) / cardsPerRow // 10 is gap
-      const cardHeight = 200
+        // ========== RINGS GRID ==========
+        const pageWidth = doc.page.width - 60
+        const cardsPerRow = 2
+        const cardWidth = (pageWidth - 10) / cardsPerRow
+        const cardHeight = 200
 
-      let cardsOnPage = 0
+        let cardsOnPage = 0
 
-      // Render rings with pre-fetched images
-      for (const { ring, imageBuffer } of ringDataWithImages) {
-        // Calculate position
-        const rowIndex = cardsOnPage % 2
-        const pagePosition = Math.floor(cardsOnPage / 2)
+        // Render rings with pre-fetched images
+        for (const { ring, imageBuffer } of ringDataWithImages) {
+          // Calculate position
+          const rowIndex = cardsOnPage % 2
 
-        // Add new page if needed
-        if (pagePosition > 0 && cardsOnPage % 2 === 0) {
-          doc.addPage()
-          cardsOnPage = 0
-        }
-
-        const xPos = 30 + rowIndex * (cardWidth + 10)
-        const yPos = 30 + (cardsOnPage % 2) * (cardHeight + 20)
-
-        // Draw card background (subtle border)
-        doc.rect(xPos, yPos, cardWidth, cardHeight).stroke("#e5e7eb")
-
-        let contentY = yPos + 10
-
-        // Add ring image if available
-        if (imageBuffer) {
-          try {
-            const imgHeight = 100
-            doc.image(imageBuffer, xPos + (cardWidth - 80) / 2, contentY, {
-              width: 80,
-              height: imgHeight,
-              fit: [80, imgHeight],
-            })
-            contentY += imgHeight + 5
-          } catch (err) {
-            console.error(`Failed to render image for ring ${ring.code}:`, err)
+          // Add new page if needed
+          if (cardsOnPage > 0 && cardsOnPage % 2 === 0) {
+            doc.addPage()
+            cardsOnPage = 0
           }
+
+          const xPos = 30 + rowIndex * (cardWidth + 10)
+          const yPos = 30 + (cardsOnPage % 2) * (cardHeight + 20)
+
+          // Draw card background (subtle border)
+          doc.rect(xPos, yPos, cardWidth, cardHeight).stroke("#e5e7eb")
+
+          let contentY = yPos + 10
+
+          // Add ring image if available
+          if (imageBuffer) {
+            try {
+              const imgHeight = 100
+              doc.image(imageBuffer, xPos + (cardWidth - 80) / 2, contentY, {
+                width: 80,
+                height: imgHeight,
+                fit: [80, imgHeight],
+              })
+              contentY += imgHeight + 5
+            } catch (imgErr) {
+              console.error(`Failed to render image for ring ${ring.code}:`, imgErr)
+            }
+          }
+
+          // Ring code
+          doc.fontSize(12).font("Helvetica-Bold").text(ring.code, xPos + 5, contentY, { width: cardWidth - 10 })
+          contentY += 18
+
+          // Price
+          if (ring.price) {
+            doc.fontSize(11).font("Helvetica-Bold")
+            doc.text(`$${ring.price.toLocaleString("es-MX")} MXN`, xPos + 5, contentY, { width: cardWidth - 10 })
+            contentY += 15
+          }
+
+          // Diamond info
+          const diamondDisplay = formatDiamondTotal(
+            ring.main_diamond_points || ring.diamond_points,
+            ring.side_diamond_points,
+          )
+          doc.fontSize(9).font("Helvetica").text(`Diamante natural: ${diamondDisplay}`, xPos + 5, contentY, {
+            width: cardWidth - 10,
+          })
+          contentY += 12
+
+          // Gold info
+          const goldColor = ring.metal_color || "Amarillo"
+          const goldDisplay = `${goldColor.charAt(0).toUpperCase() + goldColor.slice(1).toLowerCase()} 14K`
+          doc.fontSize(9).font("Helvetica").text(`Oro: ${goldDisplay}`, xPos + 5, contentY, {
+            width: cardWidth - 10,
+          })
+
+          cardsOnPage++
         }
 
-        // Ring code
-        doc.fontSize(12).font("Helvetica-Bold").text(ring.code, xPos + 5, contentY, { width: cardWidth - 10 })
-        contentY += 18
+        // Add footer with contact info on last page
+        doc.moveDown(2)
+        doc.fontSize(10).font("Helvetica").text("Anillos Guillén", { align: "center" })
+        doc.fontSize(9).font("Helvetica").text("Acapulco, Guerrero", { align: "center", margin: 0 })
+        doc.fontSize(9).font("Helvetica").text("WhatsApp: +52 74 44 49 67 69", { align: "center", margin: 0 })
 
-        // Price
-        if (ring.price) {
-          doc.fontSize(11).font("Helvetica-Bold")
-          doc.text(`$${ring.price.toLocaleString("es-MX")} MXN`, xPos + 5, contentY, { width: cardWidth - 10 })
-          contentY += 15
-        }
-
-        // Diamond info
-        const diamondDisplay = formatDiamondTotal(
-          ring.main_diamond_points || ring.diamond_points,
-          ring.side_diamond_points,
-        )
-        doc.fontSize(9).font("Helvetica").text(`Diamante natural: ${diamondDisplay}`, xPos + 5, contentY, {
-          width: cardWidth - 10,
-        })
-        contentY += 12
-
-        // Gold info
-        const goldColor = ring.metal_color || "Amarillo"
-        const goldDisplay = `${goldColor.charAt(0).toUpperCase() + goldColor.slice(1).toLowerCase()} 14K`
-        doc.fontSize(9).font("Helvetica").text(`Oro: ${goldDisplay}`, xPos + 5, contentY, {
-          width: cardWidth - 10,
-        })
-
-        cardsOnPage++
+        // Finish the PDF
+        doc.end()
+      } catch (contentErr) {
+        console.error("Error creating PDF content:", contentErr)
+        reject(contentErr)
       }
-
-      // Add footer with contact info on last page
-      doc.moveDown(2)
-      doc.fontSize(10).font("Helvetica").text("Anillos Guillén", { align: "center" })
-      doc.fontSize(9).font("Helvetica").text("Acapulco, Guerrero", { align: "center", margin: 0 })
-      doc.fontSize(9).font("Helvetica").text("WhatsApp: +52 74 44 49 67 69", { align: "center", margin: 0 })
-
-      // Finish the PDF
-      doc.end()
     })
   } catch (error) {
     console.error("Error generating catalog PDF:", error)
-    return NextResponse.json(
-      { error: "Failed to generate catalog PDF", details: error instanceof Error ? error.message : String(error) },
-      { status: 500 },
-    )
+    return new Response("PDF generation failed", { status: 500 })
   }
 }
+
 
