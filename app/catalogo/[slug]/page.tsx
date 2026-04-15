@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const metalInfo = formatGoldInfo(ring.metal_color)
     const diamondInfo = safeDiamondPoints ? `de ${safeDiamondPoints} puntos` : ""
     const pageTitle =
-      diamondInfo && ring.metal_color && ring.metal_karat
+      diamondInfo && ring.metal_color
         ? `${safeCode} - Anillo en ${metalInfo} con diamante ${diamondInfo} | Anillos Guillén`
         : `${safeCode} - Anillo de compromiso | Anillos Guillén`
 
@@ -246,7 +246,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
                 <div className="space-y-4">
                   {safeDiamondPoints && (
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Diamante</span>
+                      <span className="text-sm text-muted-foreground">Diamante natural</span>
                       <span className="text-base font-light">{safeDiamondPoints} puntos</span>
                     </div>
                   )}
@@ -287,42 +287,6 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
               </p>
             </div>
           </div>
-
-          {/* Related Rings Section */}
-          {relatedRings && relatedRings.length > 0 && (
-            <section className="mt-20 md:mt-24 pt-16 md:pt-20 border-t border-slate-200">
-              <h2 className="text-2xl md:text-3xl font-light tracking-tight mb-8 text-center">
-                Explora más modelos
-              </h2>
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
-                {relatedRings.map((relatedRing) => {
-                  const relatedMetalInfo = formatGoldInfo(relatedRing.metal_color)
-                  return (
-                    <Link key={relatedRing.id} href={`/catalogo/${relatedRing.slug}`}>
-                      <div className="group overflow-hidden rounded-sm transition-all duration-300 hover:shadow-lg">
-                        <div className="aspect-square overflow-hidden bg-slate-50 relative">
-                          <Image
-                            src={relatedRing.image_url || "/placeholder.svg?height=400&width=400"}
-                            alt={`${relatedRing.code} - Anillo de compromiso en ${relatedMetalInfo}`}
-                            fill
-                            sizes="(max-width: 768px) 100vw, 33vw"
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                        </div>
-                        <div className="p-4">
-                          <h3 className="text-sm font-medium text-muted-foreground mb-1">{relatedRing.code}</h3>
-                          <p className="text-lg font-light mb-2">${(relatedRing.price || 0).toLocaleString("es-MX")} MXN</p>
-                          <p className="text-xs text-muted-foreground">
-                            {relatedRing.diamond_points ? `${relatedRing.diamond_points} puntos` : "Diamante"} • {relatedMetalInfo}
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  )
-                })}
-              </div>
-            </section>
-          )}
         </div>
       </main>
       <Footer />

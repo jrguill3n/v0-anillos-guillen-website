@@ -8,14 +8,14 @@ import { Gem, Shield } from "lucide-react"
 export const metadata: Metadata = {
   title: "Anillos de Compromiso en Acapulco - Joyero de Confianza",
   description:
-    "Joyería familiar con más de 35 años de experiencia en Acapulco. Especialistas en anillos de compromiso con diamantes certificados. Es bueno tener en quién confiar.",
+    "Joyería familiar con más de 35 años de experiencia en Acapulco. Especialistas en anillos de compromiso con diamantes certificados en oro 14K. Es bueno tener en quién confiar.",
   keywords: [
     "anillos de compromiso Acapulco",
     "joyería Acapulco",
     "anillos de boda",
     "diamantes certificados",
     "joyero de confianza",
-    "oro 14k",
+    "oro 14K",
   ],
   alternates: {
     canonical: "/",
@@ -96,11 +96,14 @@ export default function HomePage() {
         {/* Hero Section */}
         <section className="relative flex min-h-[85vh] items-center justify-center overflow-hidden bg-gradient-to-b from-muted/50 to-background">
           <div className="absolute inset-0 z-0">
-            <video
+          <video
+              width={1280}
+              height={720}
               autoPlay
               loop
               muted
               playsInline
+              preload="auto"
               className="h-full w-full object-cover opacity-40"
               poster="/elegant-luxury-diamond-engagement-ring-on-white-ma.jpg"
             >

@@ -11,13 +11,12 @@ import { CatalogSortDropdown } from "@/components/catalog-sort-dropdown"
 export const metadata: Metadata = {
   title: "Catálogo de Anillos de Compromiso | Anillos Guillén",
   description:
-    "Descubre nuestro catálogo de anillos de compromiso en oro amarillo, blanco y rosa de 14K y 18K con diamantes naturales. Diseños elegantes, atención personalizada y certificados de autenticidad en Acapulco.",
+    "Descubre nuestro catálogo de anillos de compromiso en oro amarillo, blanco y rosa de 14K con diamantes naturales. Diseños elegantes, atención personalizada y certificados de autenticidad en Acapulco.",
   keywords: [
     "anillos de compromiso",
     "anillos de compromiso Acapulco",
     "anillos de oro",
     "oro 14K",
-    "oro 18K",
     "diamantes naturales",
     "anillos de boda",
     "catálogo anillos",
@@ -30,7 +29,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Catálogo de Anillos de Compromiso - Anillos Guillén",
     description:
-      "Explora nuestra colección completa de anillos de compromiso en oro de 14K y 18K con diamantes naturales certificados.",
+      "Explora nuestra colección completa de anillos de compromiso en oro de 14K con diamantes naturales certificados.",
     url: "https://anillosguillen.com/catalogo",
     type: "website",
     locale: "es_MX",
@@ -134,7 +133,7 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
             "@type": "CollectionPage",
             name: "Catálogo de Anillos de Compromiso",
             description:
-              "Descubre nuestro catálogo de anillos de compromiso en oro de 14K y 18K con diamantes naturales certificados.",
+              "Descubre nuestro catálogo de anillos de compromiso en oro de 14K con diamantes naturales certificados.",
             url: "https://anillosguillen.com/catalogo",
             publisher: {
               "@type": "LocalBusiness",
@@ -161,7 +160,7 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
                 Catálogo de Anillos de Compromiso
               </h1>
               <p className="mx-auto max-w-2xl text-lg text-muted-foreground leading-relaxed">
-                Descubre nuestra colección de anillos de compromiso en oro de 14K y 18K con diamantes naturales
+                Descubre nuestra colección de anillos de compromiso en oro de 14K con diamantes naturales
                 certificados. Cada pieza es única y está elaborada con los más altos estándares de calidad.
               </p>
             </div>
@@ -181,7 +180,7 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
                 <div className="grid gap-6 grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
                   {validRings.map((ring) => (
                     <Link key={ring.id} href={`/catalogo/${ring.slug}`}>
-                      <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20">
+                      <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20 h-full flex flex-col">
                         <div className="aspect-square overflow-hidden bg-secondary relative">
                           <Image
                             src={ring.image_url || "/placeholder.svg?height=800&width=800"}
@@ -191,13 +190,13 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
                             className="object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                         </div>
-                        <CardContent className="p-4 md:p-6">
+                        <CardContent className="p-4 md:p-6 flex flex-col flex-grow">
                           <h3 className="mb-1 text-xs md:text-sm font-medium text-muted-foreground">{ring.code}</h3>
                           <p className="mb-2 md:mb-3 text-base md:text-lg font-semibold text-foreground">
                             ${(ring.price || 0).toLocaleString("es-MX")} MXN
                           </p>
-                          <div className="space-y-1 text-xs md:text-sm text-muted-foreground">
-                            <p>Diamante: {ring.diamond_points || 0} puntos</p>
+                          <div className="space-y-1 text-xs md:text-sm text-muted-foreground mt-auto">
+                            <p>Diamante natural: {ring.diamond_points || 0} puntos</p>
                             <p>Oro: {formatGoldInfo(ring.metal_color)}</p>
                           </div>
                         </CardContent>
