@@ -16,7 +16,6 @@ export const metadata: Metadata = {
     "diamantes certificados",
     "joyero de confianza",
     "oro 14k",
-    "oro 18k",
   ],
   alternates: {
     canonical: "/",
@@ -159,7 +158,7 @@ export default function HomePage() {
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
                   La montadura es la estructura que sostiene el diamante. Fabricamos nuestras monturas en oro amarillo,
-                  blanco o rosa de 14K o 18K, garantizando durabilidad y elegancia. Cada diseño es cuidadosamente
+                  blanco o rosa de 14K, garantizando durabilidad y elegancia. Cada diseño es cuidadosamente
                   elaborado para realzar la belleza del diamante y adaptarse perfectamente a tu estilo personal.
                 </p>
               </div>
