@@ -110,7 +110,7 @@ export async function GET(request: Request) {
       })
     }
 
-    // PHASE 2: Full catalog PDF with cover page and ring grid
+    // Catalog PDF - 3 columns layout with images
     console.error("[PDF] Creating jsPDF document")
     stepReached = "pdf_creating"
 
@@ -123,161 +123,132 @@ export async function GET(request: Request) {
     console.error("[PDF] jsPDF document created")
     stepReached = "pdf_created"
 
-    // PAGE 1: COVER PAGE
-    console.error("[PDF] Adding cover page")
-    stepReached = "pdf_cover_page"
-
-    doc.setFontSize(40)
-    doc.setFont(undefined, "bold")
-    doc.text("Anillos Guillén", 105, 50, { align: "center" })
-
-    doc.setFontSize(16)
-    doc.setFont(undefined, "normal")
-    doc.text("Catálogo de Anillos de Compromiso", 105, 70, { align: "center" })
-
-    doc.setFontSize(12)
-    doc.text("Oro de 14K con Diamante Natural Certificado", 105, 85, { align: "center" })
-
-    doc.setFontSize(11)
-    doc.text("Atención personalizada por WhatsApp", 105, 110, { align: "center" })
-    doc.text("+52 74 44 49 67 69", 105, 120, { align: "center" })
-
-    // PAGE 2+: CATALOG with images
-    console.error("[PDF] Adding catalog page")
+    // PAGE 1: RING CATALOG (3 columns)
+    console.error("[PDF] Adding catalog grid")
     stepReached = "pdf_catalog_page"
 
-    doc.addPage()
-
-    const pageWidth = doc.internal.pageSize.getWidth()
-    const pageHeight = doc.internal.pageSize.getHeight()
-    const margin = 15
+    const pageWidth = doc.internal.pageSize.getWidth() // 210mm for A4
+    const pageHeight = doc.internal.pageSize.getHeight() // 297mm for A4
+    const margin = 10 // Reduced margin for 3 columns
     const contentWidth = pageWidth - 2 * margin
-    const cardsPerRow = 2
-    const cardWidth = (contentWidth - 5) / cardsPerRow
-    const cardHeight = 80 // Increased to fit images
+    const cardsPerRow = 3
+    const gapBetweenCards = 2 // 2mm gap between cards
+    const cardWidth = (contentWidth - gapBetweenCards * 2) / cardsPerRow
+    const imageHeight = 35 // Fixed image height in mm
+    const cardHeight = 68 // Total card height with text
 
     let colIndex = 0
     let currentY = margin
 
+    console.error("[PDF] Layout: cardWidth=", cardWidth, "cardHeight=", cardHeight, "cardsPerRow=", cardsPerRow)
     console.error("[PDF] Processing", ringsCount, "rings with images")
     stepReached = "pdf_processing_rings"
 
     if (rings && rings.length > 0) {
       for (const ring of rings) {
         // Check if we need a new page
-        if (currentY + cardHeight + 10 > pageHeight - margin) {
+        if (currentY + cardHeight + 5 > pageHeight - margin) {
           console.error("[PDF] Adding new page")
           doc.addPage()
           currentY = margin
           colIndex = 0
         }
 
-        const cardX = margin + colIndex * (cardWidth + 5)
+        const cardX = margin + colIndex * (cardWidth + gapBetweenCards)
         const cardY = currentY
 
         // Draw card border
         doc.setDrawColor(200, 200, 200)
         doc.rect(cardX, cardY, cardWidth, cardHeight)
 
-        let imageY = cardY + 2
+        let contentY = cardY + 2
 
-        // Try to load and render image
+        // IMAGE AREA - preserve aspect ratio
+        const imageAreaX = cardX + 1
+        const imageAreaY = contentY
+        const imageAreaWidth = cardWidth - 2
+        const imageAreaHeight = imageHeight
+
         if (ring.image_url) {
           try {
             const imageDataUrl = await fetchImageAsDataURL(ring.image_url, ring.code)
             if (imageDataUrl) {
               try {
                 console.error(`[PDF] Rendering image for ${ring.code}`)
-                doc.addImage(imageDataUrl, "JPEG", cardX + 5, imageY, cardWidth - 10, 30)
-                imageY += 32
+                // Use 'contain' behavior: fit within bounds while preserving aspect ratio
+                doc.addImage(imageDataUrl, "JPEG", imageAreaX, imageAreaY, imageAreaWidth, imageAreaHeight, undefined, "FAST", "contain")
                 console.error(`[PDF] Image rendered successfully for ${ring.code}`)
               } catch (renderErr) {
                 console.error(`[PDF] Failed to render image for ${ring.code}:`, renderErr)
                 // Draw placeholder
                 doc.setDrawColor(220, 220, 220)
-                doc.rect(cardX + 5, imageY, cardWidth - 10, 30)
-                doc.setFontSize(8)
-                doc.text("Imagen no disponible", cardX + cardWidth / 2, imageY + 15, { align: "center" })
-                imageY += 32
+                doc.rect(imageAreaX, imageAreaY, imageAreaWidth, imageAreaHeight)
+                doc.setFontSize(7)
+                doc.text("No image", imageAreaX + imageAreaWidth / 2, imageAreaY + imageAreaHeight / 2, { align: "center" })
               }
             } else {
               // No image fetched - draw placeholder
               doc.setDrawColor(220, 220, 220)
-              doc.rect(cardX + 5, imageY, cardWidth - 10, 30)
-              doc.setFontSize(8)
-              doc.text("Imagen no disponible", cardX + cardWidth / 2, imageY + 15, { align: "center" })
-              imageY += 32
+              doc.rect(imageAreaX, imageAreaY, imageAreaWidth, imageAreaHeight)
+              doc.setFontSize(7)
+              doc.text("No image", imageAreaX + imageAreaWidth / 2, imageAreaY + imageAreaHeight / 2, { align: "center" })
             }
           } catch (fetchErr) {
             console.error(`[PDF] Error with image for ${ring.code}:`, fetchErr)
             // Draw placeholder
             doc.setDrawColor(220, 220, 220)
-            doc.rect(cardX + 5, imageY, cardWidth - 10, 30)
-            doc.setFontSize(8)
-            doc.text("Imagen no disponible", cardX + cardWidth / 2, imageY + 15, { align: "center" })
-            imageY += 32
+            doc.rect(imageAreaX, imageAreaY, imageAreaWidth, imageAreaHeight)
+            doc.setFontSize(7)
+            doc.text("No image", imageAreaX + imageAreaWidth / 2, imageAreaY + imageAreaHeight / 2, { align: "center" })
           }
         } else {
           // No image URL - draw placeholder
           doc.setDrawColor(220, 220, 220)
-          doc.rect(cardX + 5, imageY, cardWidth - 10, 30)
-          doc.setFontSize(8)
-          doc.text("Imagen no disponible", cardX + cardWidth / 2, imageY + 15, { align: "center" })
-          imageY += 32
+          doc.rect(imageAreaX, imageAreaY, imageAreaWidth, imageAreaHeight)
+          doc.setFontSize(7)
+          doc.text("No image", imageAreaX + imageAreaWidth / 2, imageAreaY + imageAreaHeight / 2, { align: "center" })
         }
 
+        contentY = imageAreaY + imageAreaHeight + 2
+
         // Ring code
-        doc.setFontSize(10)
+        doc.setFontSize(9)
         doc.setFont(undefined, "bold")
-        doc.text(ring.code, cardX + 2, imageY + 3)
+        doc.text(ring.code, cardX + 1.5, contentY, { maxWidth: cardWidth - 3 })
+        contentY += 4
 
         // Price
         if (ring.price) {
-          doc.setFontSize(9)
+          doc.setFontSize(8)
           doc.setFont(undefined, "bold")
-          doc.text(`$${ring.price.toLocaleString("es-MX")} MXN`, cardX + 2, imageY + 10)
+          doc.text(`$${ring.price.toLocaleString("es-MX")}`, cardX + 1.5, contentY, { maxWidth: cardWidth - 3 })
+          contentY += 3.5
         }
 
         // Diamond info
         const mainDiamonds = ring.main_diamond_points || ring.diamond_points || 0
         const sideDiamonds = ring.side_diamond_points || 0
         const totalDiamonds = mainDiamonds + sideDiamonds
-        const diamondText = totalDiamonds > 0 ? `${totalDiamonds} puntos` : "Diamante natural"
+        const diamondText = totalDiamonds > 0 ? `${totalDiamonds} pts` : "Natural"
 
-        doc.setFontSize(8)
+        doc.setFontSize(7)
         doc.setFont(undefined, "normal")
-        doc.text(`Diamante: ${diamondText}`, cardX + 2, imageY + 16)
+        doc.text(`Diamante: ${diamondText}`, cardX + 1.5, contentY, { maxWidth: cardWidth - 3 })
+        contentY += 3
 
         // Gold info
         const goldColor = ring.metal_color || "Amarillo"
         const goldCapitalized = goldColor.charAt(0).toUpperCase() + goldColor.slice(1).toLowerCase()
-        doc.text(`Oro: ${goldCapitalized} 14K`, cardX + 2, imageY + 21)
+        doc.text(`Oro: ${goldCapitalized} 14K`, cardX + 1.5, contentY, { maxWidth: cardWidth - 3 })
 
         // Move to next column
         colIndex++
         if (colIndex >= cardsPerRow) {
           colIndex = 0
-          currentY += cardHeight + 8
+          currentY += cardHeight + 3
         }
       }
     }
-
-    // FOOTER PAGE
-    console.error("[PDF] Adding footer page")
-    stepReached = "pdf_footer_page"
-
-    doc.addPage()
-    doc.setFontSize(12)
-    doc.setFont(undefined, "bold")
-    doc.text("Anillos Guillén", 105, 50, { align: "center" })
-
-    doc.setFontSize(10)
-    doc.setFont(undefined, "normal")
-    doc.text("Acapulco, Guerrero", 105, 65, { align: "center" })
-    doc.text("WhatsApp: +52 74 44 49 67 69", 105, 75, { align: "center" })
-
-    doc.setFontSize(8)
-    doc.text(`Catálogo generado: ${new Date().toLocaleString("es-MX")}`, 105, 280, { align: "center" })
 
     console.error("[PDF] Content added")
     stepReached = "pdf_content_added"
