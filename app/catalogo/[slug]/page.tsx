@@ -123,7 +123,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
   const diamondInfo = safeDiamondPoints
     ? `diamante natural de ${safeDiamondPoints} puntos`
     : "diamante natural"
-  const metalInfo = formatGoldInfo(ring.metal_color, ring.metal_karat)
+  const metalInfo = formatGoldInfo(ring.metal_color)
 
   const whatsappMessage = encodeURIComponent(
     `Hola, me interesa este anillo de compromiso: ${safeCode}.\n\n` +
@@ -135,13 +135,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
       `Envié la consulta desde su sitio web: ${pageUrl}`,
   )
 
-  const generatedDescription = formatRingDescription(
-    ring.description,
-    safeCode,
-    safeDiamondPoints,
-    ring.metal_color,
-    ring.metal_karat,
-  )
+  const generatedDescription = `Anillo de compromiso ${safeCode} con ${diamondInfo} en ${metalInfo}. Diseño exclusivo de Anillos Guillén, Acapulco.`
 
   const productSchema = {
     "@context": "https://schema.org",
