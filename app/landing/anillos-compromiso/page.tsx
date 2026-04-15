@@ -6,7 +6,7 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { createClient, logDbConnection } from "@/lib/supabase/server"
 import { formatGoldInfo } from "@/lib/utils"
-import { Heart, MapPin, Users, MessageCircle, Shield, Gem, Check } from "lucide-react"
+import { Heart, MapPin, MessageCircle, Shield, Gem, Check } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Anillos de compromiso en Acapulco | Anillos Guillén",
@@ -58,10 +58,8 @@ interface Ring {
 
 async function getFeaturedRings(): Promise<Ring[]> {
   const correlationId = logDbConnection("LANDING_FEATURED_RINGS")
-
   try {
     const supabase = await createClient()
-
     const { data, error } = await supabase
       .from("rings")
       .select("*")
@@ -69,15 +67,11 @@ async function getFeaturedRings(): Promise<Ring[]> {
       .order("featured", { ascending: false })
       .order("price", { ascending: true })
       .limit(6)
-
     if (error) {
       console.error(`[v0] [${correlationId}] Error fetching rings:`, error)
       return []
     }
-
-    return (
-      data?.filter((ring) => ring.slug && ring.code && ring.image_url && ring.price != null) || []
-    )
+    return data?.filter((ring) => ring.slug && ring.code && ring.image_url && ring.price != null) || []
   } catch (error) {
     console.error(`[v0] [${correlationId}] Exception fetching rings:`, error)
     return []
@@ -93,311 +87,264 @@ export default async function LandingPage() {
     <>
       <Navigation />
       <main>
-        {/* ============================================
-            1) HERO SECTION - HOOK + CTA (NO SCROLL)
-            ============================================ */}
-        <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-b from-muted/50 to-background py-16 md:py-20">
-          <div className="container mx-auto max-w-4xl px-6 text-center space-y-8">
-            {/* Headline */}
-            <h1 className="font-serif text-4xl font-bold tracking-tight text-balance md:text-5xl lg:text-6xl">
+
+        {/* ================================================
+            1) HERO — hook + primary CTA above the fold
+            ================================================ */}
+        <section className="flex min-h-[88vh] items-center justify-center bg-gradient-to-b from-muted/60 to-background px-5 py-14 md:py-24">
+          <div className="mx-auto w-full max-w-3xl space-y-7 text-center">
+
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+              Joyería Guillén · Acapulco
+            </p>
+
+            <h1 className="font-serif text-4xl font-bold leading-tight tracking-tight text-balance sm:text-5xl lg:text-6xl">
               Encuentra el anillo de compromiso{" "}
-              <span className="font-semibold">perfecto</span>
+              <span className="text-primary">perfecto</span>
             </h1>
 
-            {/* Subheadline */}
-            <p className="text-lg md:text-xl text-muted-foreground text-pretty leading-relaxed max-w-2xl mx-auto">
-              Diseños en oro de 14K con diamante natural. Te asesoramos por WhatsApp de forma personalizada.
+            <p className="mx-auto max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+              Diseños en oro de 14K con diamante natural certificado. Te asesoramos de forma personalizada, sin compromiso.
             </p>
 
-            {/* Emotional Support Line */}
-            <p className="text-base text-muted-foreground italic">
-              Te ayudamos a elegir el anillo ideal según tu estilo y presupuesto.
-            </p>
-
-            {/* Primary CTA - VERY PROMINENT */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Button
-                asChild
-                size="lg"
-                className="h-12 px-8 text-base font-semibold shadow-lg"
+            {/* Primary CTA stack — full width on mobile, inline on desktop */}
+            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-center">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-full items-center justify-center gap-2.5 rounded-md bg-primary px-7 py-4 text-base font-semibold text-primary-foreground shadow-md transition-all duration-150 hover:bg-primary/90 hover:shadow-lg active:scale-[0.97] sm:w-auto"
               >
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  Más información por WhatsApp
-                </a>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="h-12 px-8 text-base font-semibold"
+                <MessageCircle className="h-5 w-5 shrink-0" />
+                Más información por WhatsApp
+              </a>
+              <Link
+                href="/catalogo"
+                className="inline-flex w-full items-center justify-center rounded-md border border-border bg-card px-7 py-4 text-base font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.97] sm:w-auto"
               >
-                <Link href="/catalogo" className="flex items-center justify-center gap-2">
-                  Ver catálogo
-                </Link>
-              </Button>
+                Ver catálogo
+              </Link>
             </div>
+
+            <p className="text-sm italic text-muted-foreground">
+              Te ayudamos a elegir según tu estilo y presupuesto.
+            </p>
           </div>
         </section>
 
-        {/* ============================================
-            2) TRUST STRIP - FAST VALIDATION
-            ============================================ */}
-        <section className="border-y bg-muted/30 py-8 md:py-10">
-          <div className="container mx-auto max-w-7xl px-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-              {/* Trust Item 1 */}
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                  <Shield className="h-5 w-5 text-primary" />
+        {/* ================================================
+            2) TRUST STRIP — quick credibility validation
+            ================================================ */}
+        <section className="border-y bg-muted/40 px-5 py-8 md:py-10">
+          <div className="mx-auto grid w-full max-w-4xl grid-cols-2 gap-5 md:grid-cols-4">
+            {[
+              { icon: Shield,      label: "30+ años de experiencia" },
+              { icon: Heart,       label: "Atención personalizada" },
+              { icon: MapPin,      label: "Ubicados en Acapulco" },
+              { icon: Check,       label: "Citas previas disponibles" },
+            ].map(({ icon: Icon, label }) => (
+              <div key={label} className="flex flex-col items-center gap-2 text-center">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10">
+                  <Icon className="h-5 w-5 text-primary" />
                 </div>
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">
-                  30+ años de experiencia
-                </p>
+                <p className="text-xs font-medium leading-snug text-muted-foreground sm:text-sm">{label}</p>
               </div>
-
-              {/* Trust Item 2 */}
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                  <Heart className="h-5 w-5 text-primary" />
-                </div>
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">
-                  Atención personalizada
-                </p>
-              </div>
-
-              {/* Trust Item 3 */}
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                  <MapPin className="h-5 w-5 text-primary" />
-                </div>
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">
-                  Ubicados en Acapulco
-                </p>
-              </div>
-
-              {/* Trust Item 4 */}
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                  <Check className="h-5 w-5 text-primary" />
-                </div>
-                <p className="text-xs md:text-sm font-medium text-muted-foreground">
-                  Citas previas disponibles
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
         </section>
 
-        {/* ============================================
-            3) FEATURED RINGS - LOW FRICTION BROWSE
-            ============================================ */}
+        {/* ================================================
+            3) FEATURED RINGS — low-friction browse
+            ================================================ */}
         {rings.length > 0 && (
-          <section className="py-16 md:py-24">
-            <div className="container mx-auto max-w-7xl px-6">
-              <div className="text-center mb-12 md:mb-16">
-                <h2 className="font-serif text-3xl md:text-4xl font-bold tracking-tight mb-4">
+          <section className="px-5 py-14 md:py-24">
+            <div className="mx-auto w-full max-w-6xl">
+
+              <div className="mb-10 text-center md:mb-14">
+                <h2 className="font-serif text-3xl font-bold tracking-tight md:text-4xl">
                   Anillos destacados
                 </h2>
-                <p className="text-muted-foreground max-w-2xl mx-auto">
-                  Explora nuestras opciones más populares en oro de 14K con diamante natural certificado.
+                <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+                  Selección en oro de 14K con diamante natural certificado.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              {/* 1 col → 2 col → 3 col grid */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {rings.slice(0, 6).map((ring) => (
-                  <div key={ring.id} className="rounded-lg border bg-card shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                    <Link href={`/catalogo/${ring.slug}`} className="block aspect-square overflow-hidden bg-muted">
-                      <Image
-                        src={ring.image_url || "/placeholder.svg"}
-                        alt={ring.name}
-                        width={400}
-                        height={400}
-                        className="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
-                      />
+                  <div
+                    key={ring.id}
+                    className="group overflow-hidden rounded-lg border bg-card shadow-sm transition-shadow duration-200 hover:shadow-md"
+                  >
+                    {/* Ring image */}
+                    <Link href={`/catalogo/${ring.slug}`} className="block overflow-hidden">
+                      <div className="relative aspect-square bg-muted">
+                        <Image
+                          src={ring.image_url || "/placeholder.svg"}
+                          alt={ring.name}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                      </div>
                     </Link>
-                    <div className="p-6 space-y-4">
+
+                    {/* Card body */}
+                    <div className="space-y-4 p-5">
                       <div>
-                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                           {ring.code}
                         </p>
-                        <p className="text-lg font-semibold">
-                          ${(ring.price || 0).toLocaleString("es-MX")}
+                        <p className="mt-1 text-lg font-bold text-foreground">
+                          ${(ring.price || 0).toLocaleString("es-MX")}{" "}
+                          <span className="text-sm font-normal text-muted-foreground">MXN</span>
                         </p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {ring.diamond_points} pts • {formatGoldInfo(ring.metal_color, ring.metal_karat)}
+                        <p className="mt-0.5 text-sm text-muted-foreground">
+                          {ring.diamond_points} pts · {formatGoldInfo(ring.metal_color, ring.metal_karat)}
                         </p>
                       </div>
-                      <Button
-                        asChild
-                        size="sm"
-                        className="w-full"
+
+                      {/* Per-ring WhatsApp CTA — full width */}
+                      <a
+                        href={`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(`Hola, me interesa el anillo ${ring.code}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all duration-150 hover:bg-primary/90 active:scale-[0.97]"
                       >
-                        <a
-                          href={whatsappUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-center gap-2"
-                        >
-                          <MessageCircle className="w-4 h-4" />
-                          Más información
-                        </a>
-                      </Button>
+                        <MessageCircle className="h-4 w-4 shrink-0" />
+                        Más información
+                      </a>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Catalog Link */}
-              <div className="text-center">
-                <Button asChild variant="outline" size="lg">
-                  <Link href="/catalogo">Ver catálogo completo</Link>
-                </Button>
+              {/* Catalog link */}
+              <div className="mt-10 text-center">
+                <Link
+                  href="/catalogo"
+                  className="inline-flex items-center justify-center rounded-md border border-border bg-card px-7 py-3 text-sm font-semibold text-foreground transition-all duration-150 hover:bg-muted active:scale-[0.97]"
+                >
+                  Ver catálogo completo
+                </Link>
               </div>
             </div>
           </section>
         )}
 
-        {/* ============================================
-            4) GUIDED HELP SECTION - KEY CONVERSION DRIVER
-            ============================================ */}
-        <section className="border-t bg-muted/30 py-16 md:py-24">
-          <div className="container mx-auto max-w-4xl px-6">
-            <div className="text-center mb-12">
-              <h2 className="font-serif text-3xl md:text-4xl font-bold tracking-tight mb-4">
+        {/* ================================================
+            4) GUIDED HELP — key conversion driver
+            ================================================ */}
+        <section className="border-t bg-muted/40 px-5 py-14 md:py-24">
+          <div className="mx-auto w-full max-w-3xl">
+
+            <div className="mb-10 text-center">
+              <h2 className="font-serif text-3xl font-bold tracking-tight md:text-4xl">
                 Te ayudamos a elegir el anillo ideal
               </h2>
-              <p className="text-muted-foreground text-lg">
-                Sabemos que elegir un anillo de compromiso es importante. Te asesoramos paso a paso por WhatsApp.
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                Sabemos que esta decisión es importante. Te guiamos paso a paso sin ningún compromiso.
               </p>
             </div>
 
-            <div className="rounded-lg border bg-card p-10 shadow-sm space-y-6 mb-10">
-              {[
-                { icon: "💰", text: "Elegimos según tu presupuesto" },
-                { icon: "💎", text: "Te explicamos diamantes de forma simple" },
-                { icon: "👀", text: "Te mostramos opciones reales y disponibles" },
-                { icon: "⚡", text: "Atención directa y respuesta rápida" },
-              ].map((item, idx) => (
-                <div key={idx} className="flex items-center gap-4">
-                  <span className="text-3xl flex-shrink-0">{item.icon}</span>
-                  <p className="text-lg text-muted-foreground">{item.text}</p>
-                </div>
-              ))}
+            <div className="rounded-lg border bg-card p-6 shadow-sm sm:p-10">
+              <ul className="space-y-5">
+                {[
+                  { icon: "💰", text: "Elegimos opciones según tu presupuesto" },
+                  { icon: "💎", text: "Te explicamos todo sobre diamantes de forma simple" },
+                  { icon: "👀", text: "Te mostramos opciones reales y disponibles" },
+                  { icon: "⚡", text: "Atención directa con respuesta rápida por WhatsApp" },
+                ].map((item) => (
+                  <li key={item.text} className="flex items-center gap-4">
+                    <span className="text-2xl shrink-0 sm:text-3xl" aria-hidden="true">{item.icon}</span>
+                    <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">{item.text}</p>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            {/* CTA Below */}
-            <div className="text-center">
-              <Button
-                asChild
-                size="lg"
-                className="h-12 px-8 text-base font-semibold"
-              >
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  Hablar por WhatsApp
-                </a>
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================
-            5) EDUCATION - REUSE EXISTING STYLE
-            ============================================ */}
-        <section className="py-16 md:py-24">
-          <div className="container mx-auto max-w-7xl px-6">
-            <h2 className="text-center font-serif text-3xl md:text-4xl font-bold tracking-tight mb-12 md:mb-16">
-              Lo que necesitas saber
-            </h2>
-
-            <div className="grid gap-10 md:grid-cols-2">
-              {/* Montadura Card */}
-              <div className="rounded-lg border bg-card p-10 shadow-sm">
-                <div className="mb-6 flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-                    <Shield className="h-7 w-7 text-primary" />
-                  </div>
-                  <h3 className="font-serif text-2xl font-semibold">Montadura</h3>
-                </div>
-                <p className="text-muted-foreground leading-relaxed">
-                  La montadura es la estructura que sostiene el diamante. Fabricamos nuestras monturas en oro amarillo,
-                  blanco o rosa de 14K, garantizando durabilidad y elegancia. Cada diseño es cuidadosamente
-                  elaborado para realzar la belleza del diamante y adaptarse perfectamente a tu estilo personal.
-                </p>
-              </div>
-
-              {/* Diamante Card */}
-              <div className="rounded-lg border bg-card p-10 shadow-sm">
-                <div className="mb-6 flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-                    <Gem className="h-7 w-7 text-primary" />
-                  </div>
-                  <h3 className="font-serif text-2xl font-semibold">Diamante</h3>
-                </div>
-                <p className="text-muted-foreground leading-relaxed">
-                  Los diamantes se evalúan por las 4 C's: Corte, Color, Claridad y Quilates (puntos). Trabajamos con
-                  diamantes certificados que garantizan calidad excepcional. Los puntos indican el peso del diamante
-                  (100 puntos = 1 quilate). Te asesoramos personalmente para que elijas el diamante ideal según tu
-                  presupuesto y preferencias.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================
-            6) STRONG CTA BLOCK - HIGH IMPACT
-            ============================================ */}
-        <section className="border-t border-b bg-muted/30 py-16 md:py-24">
-          <div className="container mx-auto max-w-3xl px-6 text-center space-y-8">
-            <div className="space-y-4">
-              <h2 className="font-serif text-3xl md:text-4xl font-bold tracking-tight">
-                ¿Listo para encontrar el anillo perfecto?
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                Escríbenos por WhatsApp y te ayudamos personalmente a encontrar exactamente lo que buscas.
-              </p>
-            </div>
-
-            <Button
-              asChild
-              size="lg"
-              className="h-12 px-8 text-base font-semibold"
-            >
+            {/* CTA — full width on mobile */}
+            <div className="mt-8 flex justify-center">
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2"
+                className="inline-flex w-full items-center justify-center gap-2.5 rounded-md bg-primary px-7 py-4 text-base font-semibold text-primary-foreground shadow-md transition-all duration-150 hover:bg-primary/90 hover:shadow-lg active:scale-[0.97] sm:w-auto"
               >
-                <MessageCircle className="w-5 h-5" />
-                Más información por WhatsApp
+                <MessageCircle className="h-5 w-5 shrink-0" />
+                Hablar por WhatsApp
               </a>
-            </Button>
+            </div>
           </div>
         </section>
 
-        {/* ============================================
-            7) FAQ - REMOVE OBJECTIONS
-            ============================================ */}
-        <section className="py-16 md:py-24">
-          <div className="container mx-auto max-w-3xl px-6">
-            <h2 className="text-center font-serif text-3xl md:text-4xl font-bold tracking-tight mb-12 md:mb-16">
+        {/* ================================================
+            5) EDUCATION — reuse homepage card style
+            ================================================ */}
+        <section className="px-5 py-14 md:py-24">
+          <div className="mx-auto w-full max-w-5xl">
+            <h2 className="mb-10 text-center font-serif text-3xl font-bold tracking-tight md:mb-14 md:text-4xl">
+              Lo que necesitas saber
+            </h2>
+            <div className="grid gap-6 md:grid-cols-2">
+              {[
+                {
+                  icon: Shield,
+                  title: "Montadura",
+                  body: "La montadura es la estructura que sostiene el diamante. Fabricamos nuestras monturas en oro amarillo, blanco o rosa de 14K, garantizando durabilidad y elegancia. Cada diseño realza la belleza del diamante y se adapta a tu estilo personal.",
+                },
+                {
+                  icon: Gem,
+                  title: "Diamante",
+                  body: "Los diamantes se evalúan por las 4 C's: Corte, Color, Claridad y Quilates (puntos). Trabajamos con diamantes certificados de calidad excepcional. Te asesoramos para que elijas el diamante ideal según tu presupuesto.",
+                },
+              ].map(({ icon: Icon, title, body }) => (
+                <div key={title} className="rounded-lg border bg-card p-7 shadow-sm sm:p-10">
+                  <div className="mb-5 flex items-center gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 sm:h-14 sm:w-14">
+                      <Icon className="h-6 w-6 text-primary sm:h-7 sm:w-7" />
+                    </div>
+                    <h3 className="font-serif text-xl font-semibold sm:text-2xl">{title}</h3>
+                  </div>
+                  <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">{body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ================================================
+            6) STRONG CTA BLOCK — high-impact midpage push
+            ================================================ */}
+        <section className="border-y bg-muted/40 px-5 py-14 md:py-24">
+          <div className="mx-auto w-full max-w-2xl space-y-6 text-center">
+            <h2 className="font-serif text-3xl font-bold tracking-tight md:text-4xl">
+              ¿Listo para encontrar el anillo perfecto?
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+              Escríbenos por WhatsApp y te ayudamos personalmente, sin compromiso ni presión.
+            </p>
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-full items-center justify-center gap-2.5 rounded-md bg-primary px-8 py-4 text-base font-semibold text-primary-foreground shadow-md transition-all duration-150 hover:bg-primary/90 hover:shadow-lg active:scale-[0.97] sm:w-auto"
+            >
+              <MessageCircle className="h-5 w-5 shrink-0" />
+              Más información por WhatsApp
+            </a>
+          </div>
+        </section>
+
+        {/* ================================================
+            7) FAQ — remove purchase objections
+            ================================================ */}
+        <section className="px-5 py-14 md:py-24">
+          <div className="mx-auto w-full max-w-3xl">
+            <h2 className="mb-10 text-center font-serif text-3xl font-bold tracking-tight md:mb-14 md:text-4xl">
               Preguntas frecuentes
             </h2>
-
-            <div className="grid gap-8 md:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               {[
                 {
                   q: "¿Necesito cita?",
@@ -405,64 +352,66 @@ export default async function LandingPage() {
                 },
                 {
                   q: "¿Dónde están ubicados?",
-                  a: "Nos encontramos en Acapulco, Guerrero. Te enviaremos nuestra dirección exacta cuando agendes.",
+                  a: "Nos encontramos en Acapulco, Guerrero. Te enviamos la dirección exacta al agendar tu cita.",
                 },
                 {
                   q: "¿Qué tipo de oro manejan?",
-                  a: "Utilizamos oro de 14K de la más alta calidad en amarillo, blanco y rosa con certificado de autenticidad.",
+                  a: "Oro de 14K en amarillo, blanco y rosa. Todos los anillos incluyen certificado de autenticidad.",
                 },
                 {
-                  q: "¿Puedo pedir información por WhatsApp?",
-                  a: "¡Claro! Es nuestra forma principal de comunicación. Te atenderemos rápidamente con asesoría personalizada.",
+                  q: "¿Puedo preguntar por WhatsApp?",
+                  a: "¡Claro! Es nuestra forma principal de contacto. Respondemos con asesoría personalizada sin compromiso.",
                 },
-              ].map((item, idx) => (
-                <div key={idx} className="rounded-lg border bg-card p-6 shadow-sm">
-                  <h3 className="font-semibold text-lg mb-3">{item.q}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{item.a}</p>
+              ].map((item) => (
+                <div
+                  key={item.q}
+                  className="rounded-lg border bg-card p-6 shadow-sm transition-shadow duration-150 hover:shadow-md"
+                >
+                  <h3 className="mb-2 font-semibold text-foreground">{item.q}</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{item.a}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ============================================
-            8) FINAL CTA
-            ============================================ */}
-        <section className="py-16 md:py-20 bg-muted/30 border-t">
-          <div className="container mx-auto max-w-2xl px-6 text-center space-y-6">
-            <h2 className="font-serif text-2xl md:text-3xl font-bold tracking-tight">
+        {/* ================================================
+            8) FINAL CTA — closing push
+            ================================================ */}
+        <section className="border-t bg-muted/40 px-5 py-14 md:py-20">
+          <div className="mx-auto w-full max-w-xl space-y-5 text-center">
+            <h2 className="font-serif text-2xl font-bold tracking-tight md:text-3xl">
               Comienza tu búsqueda hoy
             </h2>
-            <p className="text-muted-foreground">
-              Nuestro equipo está listo para guiarte a encontrar el anillo perfecto.
+            <p className="text-sm text-muted-foreground sm:text-base">
+              Nuestro equipo está listo para guiarte hacia el anillo perfecto.
             </p>
-            <Button
-              asChild
-              size="lg"
-              className="h-12 px-8 text-base font-semibold"
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-full items-center justify-center gap-2.5 rounded-md bg-primary px-7 py-4 text-base font-semibold text-primary-foreground shadow-md transition-all duration-150 hover:bg-primary/90 hover:shadow-lg active:scale-[0.97] sm:w-auto"
             >
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2"
-              >
-                <MessageCircle className="w-5 h-5" />
-                Contactar por WhatsApp
-              </a>
-            </Button>
+              <MessageCircle className="h-5 w-5 shrink-0" />
+              Contactar por WhatsApp
+            </a>
           </div>
         </section>
+
       </main>
 
-      {/* ============================================
-          STICKY WHATSAPP CTA - MOBILE ONLY
-          ============================================ */}
-      <div className="fixed bottom-6 right-6 z-50 md:hidden">
-        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg hover:shadow-xl transition-shadow">
-            <MessageCircle className="h-6 w-6 text-primary-foreground" />
-          </div>
+      {/* ================================================
+          STICKY FLOATING WHATSAPP — mobile only
+          ================================================ */}
+      <div className="fixed bottom-5 right-5 z-50 md:hidden">
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Contactar por WhatsApp"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg transition-all duration-150 hover:shadow-xl active:scale-95"
+        >
+          <MessageCircle className="h-6 w-6 text-primary-foreground" />
         </a>
       </div>
 
