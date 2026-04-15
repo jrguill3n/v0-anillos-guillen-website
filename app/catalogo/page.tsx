@@ -5,7 +5,7 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { createClient, logDbConnection } from "@/lib/supabase/server"
-import { formatGoldInfo, formatDiamondInfo } from "@/lib/utils"
+import { formatGoldInfo, formatDiamondTotal } from "@/lib/utils"
 import { CatalogSortDropdown } from "@/components/catalog-sort-dropdown"
 
 export const metadata: Metadata = {
@@ -196,7 +196,7 @@ export default async function CatalogoPage({ searchParams }: CatalogoPageProps) 
                             ${(ring.price || 0).toLocaleString("es-MX")} MXN
                           </p>
                           <div className="space-y-1 text-xs md:text-sm text-muted-foreground mt-auto">
-                            <p>Diamante natural: {formatDiamondInfo(ring.main_diamond_points || ring.diamond_points, ring.side_diamond_points)}</p>
+                            <p>Diamante natural: {formatDiamondTotal(ring.main_diamond_points || ring.diamond_points, ring.side_diamond_points)}</p>
                             <p>Oro: {formatGoldInfo(ring.metal_color)}</p>
                           </div>
                         </CardContent>

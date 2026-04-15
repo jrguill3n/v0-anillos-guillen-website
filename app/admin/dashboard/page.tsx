@@ -67,7 +67,7 @@ export default async function AdminDashboardPage() {
               <AdminRefreshButton />
               <Button asChild variant="outline" className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 h-10 px-4 font-medium">
                 <a href="/api/admin/generate-catalog-pdf" download="catalogo-anillos-guillen.pdf">
-                  Descargar PDF
+                  Descargar catálogo PDF
                 </a>
               </Button>
               <form action={logoutAdmin}>
