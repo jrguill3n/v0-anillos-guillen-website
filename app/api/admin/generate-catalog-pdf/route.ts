@@ -1,37 +1,8 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import PDFDocument from "pdfkit"
-import fetch from "node-fetch"
 
 export const runtime = "nodejs"
-
-// Format diamond total (main + side = total points)
-function formatDiamondTotal(mainPoints: number | null | undefined, sidePoints: number | null | undefined): string {
-  const main = mainPoints && !isNaN(Number(mainPoints)) ? Number(mainPoints) : 0
-  const side = sidePoints && !isNaN(Number(sidePoints)) && Number(sidePoints) > 0 ? Number(sidePoints) : 0
-  const total = main + side
-  if (total === 0) return "Diamante natural"
-  return `${total} puntos`
-}
-
-// Format gold color
-function formatGoldColor(color: string | null | undefined): string {
-  if (!color) return "Amarillo 14K"
-  const capitalizedColor = color.charAt(0).toUpperCase() + color.slice(1).toLowerCase()
-  return `${capitalizedColor} 14K`
-}
-
-// Fetch image as buffer
-async function fetchImageBuffer(url: string): Promise<Buffer | null> {
-  try {
-    const response = await fetch(url)
-    if (!response.ok) return null
-    return Buffer.from(await response.arrayBuffer())
-  } catch (err) {
-    console.error(`[PDF Route] Failed to fetch image: ${err}`)
-    return null
-  }
-}
 
 export async function GET(request: Request) {
   const url = new URL(request.url)
@@ -40,14 +11,15 @@ export async function GET(request: Request) {
   let stepReached = "init"
   let ringsCount = 0
   let errorMsg = ""
+  let errorStack = ""
 
   try {
-    console.error("[PDF Route] Route entered, debugMode=", debugMode)
+    console.error("[PDF] Route entered, debugMode=", debugMode)
     stepReached = "db_fetch_started"
 
     // Fetch rings from database
     const supabase = await createClient()
-    console.error("[PDF Route] Supabase client created")
+    console.error("[PDF] Supabase client created")
 
     const { data: rings, error: dbError } = await supabase
       .from("rings")
@@ -56,171 +28,120 @@ export async function GET(request: Request) {
       .order("order_index", { ascending: true })
 
     if (dbError) {
-      console.error("[PDF Route] DB Error:", dbError.message, dbError)
+      console.error("[PDF] DB Error:", dbError)
       errorMsg = `DB Error: ${dbError.message}`
       stepReached = "db_fetch_failed"
 
       if (debugMode) {
-        return NextResponse.json({
-          ok: false,
-          stepReached,
-          errorMsg,
-          ringsCount: 0,
-        })
+        return NextResponse.json({ ok: false, stepReached, errorMsg, ringsCount: 0 })
       }
       return new Response("Database error", { status: 500 })
     }
 
     ringsCount = rings?.length || 0
-    console.error("[PDF Route] DB fetch success, rings count:", ringsCount)
+    console.error("[PDF] DB success, rings count:", ringsCount)
     stepReached = "db_fetch_done"
 
-    // Debug mode: return JSON instead of PDF
+    // Return debug info if requested
     if (debugMode) {
-      console.error("[PDF Route] Debug mode - returning JSON")
+      console.error("[PDF] Debug mode - returning JSON at step:", stepReached)
       return NextResponse.json({
         ok: true,
         stepReached,
         ringsCount,
-        rings: rings?.map((r) => ({ code: r.code, price: r.price })) || [],
+        rings: rings?.slice(0, 3).map((r) => ({ code: r.code, price: r.price })) || [],
       })
     }
 
-    // Skip image fetching for now - focus on getting PDF working first
-    console.error("[PDF Route] Creating ringData array (no image fetch)")
-    stepReached = "ring_data_prepared"
-    const ringDataWithImages = rings?.map((ring) => ({ ring, imageBuffer: null })) || []
+    // PHASE 1: Minimal PDF
+    console.error("[PDF] Creating PDFDocument")
+    stepReached = "pdf_doc_creating"
 
-    // Create PDF document
-    console.error("[PDF Route] Creating PDFDocument")
-    stepReached = "pdf_doc_created"
-
-    const doc = new PDFDocument({
-      size: "A4",
-      margin: 30,
-    })
-
+    const doc = new PDFDocument({ size: "A4", margin: 40 })
     const chunks: Buffer[] = []
+
+    console.error("[PDF] Attaching data handler")
+    stepReached = "pdf_data_handler_attached"
+
     doc.on("data", (chunk) => {
+      console.error("[PDF] Received data chunk, size:", chunk.length)
       chunks.push(chunk)
     })
 
+    console.error("[PDF] Setting up error handler")
+    doc.on("error", (err) => {
+      console.error("[PDF] PDFDocument error event:", err)
+      stepReached = "pdf_error_event"
+      errorMsg = err instanceof Error ? err.message : String(err)
+      errorStack = err instanceof Error ? err.stack : ""
+    })
+
+    console.error("[PDF] Adding minimal content")
+    stepReached = "pdf_content_adding"
+
+    doc.fontSize(24).font("Helvetica-Bold").text("Catálogo de Anillos Guillén", { align: "center" })
+    doc.moveDown()
+    doc.fontSize(12).font("Helvetica").text(`Total de anillos: ${ringsCount}`, { align: "center" })
+
+    console.error("[PDF] Content added, calling doc.end()")
+    stepReached = "pdf_end_called"
+    doc.end()
+
+    console.error("[PDF] Waiting for PDF to finish...")
+    stepReached = "pdf_waiting_for_end"
+
+    // Wait for PDF to finish and return it
     return new Promise<NextResponse>((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        console.error("[PDF] TIMEOUT waiting for PDF end event")
+        stepReached = "pdf_timeout"
+        reject(new Error("PDF generation timeout"))
+      }, 5000)
+
       doc.on("end", () => {
-        console.error("[PDF Route] PDF document ended, chunks:", chunks.length)
-        stepReached = "pdf_finalized"
-        const pdfBuffer = Buffer.concat(chunks)
-        console.error("[PDF Route] PDF buffer created, size:", pdfBuffer.length)
+        clearTimeout(timeoutId)
+        console.error("[PDF] PDF end event received")
+        stepReached = "pdf_end_event"
 
-        resolve(
-          new NextResponse(pdfBuffer, {
-            status: 200,
-            headers: {
-              "Content-Type": "application/pdf",
-              "Content-Disposition": 'attachment; filename="catalogo-anillos-guillen.pdf"',
-              "Content-Length": pdfBuffer.length.toString(),
-            },
-          }),
-        )
-      })
-
-      doc.on("error", (err) => {
-        console.error("[PDF Route] PDFDocument error:", err, err instanceof Error ? err.stack : "")
-        stepReached = "pdf_error"
-        reject(err)
-      })
-
-      try {
-        // PHASE 2: Full catalog PDF
-        console.error("[PDF Route] Adding cover page")
-
-        // Cover page
-        doc.fontSize(48).font("Helvetica-Bold").text("Anillos Guillén", { align: "center" })
-        doc.fontSize(16).font("Helvetica-Light").text("Catálogo de Anillos de Compromiso", { align: "center", margin: 0 })
-        doc.moveDown(0.5)
-        doc.fontSize(12).font("Helvetica").text("Oro de 14K con Diamante Natural Certificado", { align: "center", margin: 0 })
-        doc.moveDown(3)
-        doc.fontSize(11).font("Helvetica").text("Atención personalizada por WhatsApp", { align: "center" })
-        doc.fontSize(11).font("Helvetica").text("+52 74 44 49 67 69", { align: "center" })
-
-        // Add catalog page
-        doc.addPage()
-        console.error("[PDF Route] Adding catalog grid")
-
-        const pageWidth = doc.page.width - 60
-        const cardsPerRow = 2
-        const cardWidth = (pageWidth - 10) / cardsPerRow
-        const cardHeight = 200
-
-        let cardsOnPage = 0
-
-        // Render rings
-        for (const { ring, imageBuffer } of ringDataWithImages) {
-          // Calculate position
-          const rowIndex = cardsOnPage % 2
-
-          // Add new page if needed
-          if (cardsOnPage > 0 && cardsOnPage % 2 === 0) {
-            doc.addPage()
-            cardsOnPage = 0
-          }
-
-          const xPos = 30 + rowIndex * (cardWidth + 10)
-          const yPos = 30 + (cardsOnPage % 2) * (cardHeight + 20)
-
-          // Card border
-          doc.rect(xPos, yPos, cardWidth, cardHeight).stroke("#e5e7eb")
-
-          let contentY = yPos + 10
-
-          // Ring details (no image)
-          doc.fontSize(11).font("Helvetica-Bold").text(ring.code, xPos + 5, contentY, { width: cardWidth - 10 })
-          contentY += 16
-
-          // Price
-          if (ring.price) {
-            doc.fontSize(10).font("Helvetica-Bold")
-            doc.text(`$${ring.price.toLocaleString("es-MX")} MXN`, xPos + 5, contentY, { width: cardWidth - 10 })
-            contentY += 12
-          }
-
-          // Diamond
-          const diamondDisplay = formatDiamondTotal(
-            ring.main_diamond_points || ring.diamond_points,
-            ring.side_diamond_points,
-          )
-          doc.fontSize(9).font("Helvetica").text(`Diamante: ${diamondDisplay}`, xPos + 5, contentY, { width: cardWidth - 10 })
-          contentY += 10
-
-          // Gold
-          const goldDisplay = formatGoldColor(ring.metal_color)
-          doc.fontSize(9).font("Helvetica").text(`Oro: ${goldDisplay}`, xPos + 5, contentY, { width: cardWidth - 10 })
-
-          cardsOnPage++
+        if (chunks.length === 0) {
+          console.error("[PDF] ERROR: No chunks collected!")
+          stepReached = "pdf_no_chunks"
+          reject(new Error("No PDF data collected"))
+          return
         }
 
-        // Footer
-        doc.moveDown(2)
-        doc.fontSize(10).font("Helvetica").text("Anillos Guillén", { align: "center" })
-        doc.fontSize(9).font("Helvetica").text("Acapulco, Guerrero", { align: "center", margin: 0 })
-        doc.fontSize(9).font("Helvetica").text("WhatsApp: +52 74 44 49 67 69", { align: "center", margin: 0 })
+        console.error("[PDF] Concatenating", chunks.length, "chunks")
+        const pdfBuffer = Buffer.concat(chunks)
+        console.error("[PDF] PDF buffer created, size:", pdfBuffer.length)
+        stepReached = "pdf_buffer_created"
 
-        console.error("[PDF Route] Catalog complete, ending document")
-        stepReached = "pdf_content_added"
-        doc.end()
-      } catch (contentErr) {
-        console.error(
-          "[PDF Route] Error adding content:",
-          contentErr,
-          contentErr instanceof Error ? contentErr.stack : "",
-        )
-        stepReached = "pdf_content_error"
-        reject(contentErr)
-      }
+        console.error("[PDF] Creating NextResponse")
+        const response = new NextResponse(pdfBuffer, {
+          status: 200,
+          headers: {
+            "Content-Type": "application/pdf",
+            "Content-Disposition": 'attachment; filename="catalogo-anillos-guillen.pdf"',
+            "Content-Length": pdfBuffer.length.toString(),
+          },
+        })
+        console.error("[PDF] NextResponse created successfully")
+        stepReached = "pdf_response_created"
+
+        resolve(response)
+      })
     })
   } catch (error) {
-    console.error("[PDF Route] Top-level error:", error, error instanceof Error ? error.stack : "")
-    console.error("[PDF Route] Final state - stepReached:", stepReached, "ringsCount:", ringsCount, "errorMsg:", errorMsg)
+    console.error("[PDF] CATCH - Top-level error:", error)
+    if (error instanceof Error) {
+      console.error("[PDF] Error message:", error.message)
+      console.error("[PDF] Error stack:", error.stack)
+      errorMsg = error.message
+      errorStack = error.stack
+    } else {
+      errorMsg = String(error)
+    }
+
+    console.error("[PDF] Final state - stepReached:", stepReached)
 
     if (debugMode) {
       return NextResponse.json(
@@ -228,8 +149,8 @@ export async function GET(request: Request) {
           ok: false,
           stepReached,
           ringsCount,
-          errorMsg: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
+          errorMsg,
+          errorStack,
         },
         { status: 500 },
       )
@@ -238,4 +159,3 @@ export async function GET(request: Request) {
     return new Response("PDF generation failed", { status: 500 })
   }
 }
-
