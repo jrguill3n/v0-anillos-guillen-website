@@ -296,7 +296,7 @@ export default async function RingDetailPage({ params }: { params: Promise<{ slu
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Cotizar por WhatsApp
+                  Más información por WhatsApp
                 </a>
               </Button>
 
