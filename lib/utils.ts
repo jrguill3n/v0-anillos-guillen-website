@@ -21,3 +21,20 @@ export function formatGoldInfo(color: string | null | undefined): string {
 
   return `${capitalizedColor} 14K`
 }
+
+/**
+ * Formats diamond information from main and side diamond points
+ * Example: (15, null) -> "15 puntos", (13, 2) -> "13 + 2 puntos", (13, 0) -> "13 puntos"
+ */
+export function formatDiamondInfo(
+  mainPoints: number | null | undefined,
+  sidePoints: number | null | undefined,
+): string {
+  const main = mainPoints && !isNaN(Number(mainPoints)) ? Number(mainPoints) : null
+  const side = sidePoints && !isNaN(Number(sidePoints)) && Number(sidePoints) > 0 ? Number(sidePoints) : null
+
+  if (!main) return "Diamante natural"
+  if (!side) return `${main} puntos`
+
+  return `${main} + ${side} puntos`
+}

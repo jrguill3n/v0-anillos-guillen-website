@@ -206,20 +206,35 @@ export function RingFormDialog({ mode, ring, onSuccess }: RingFormDialogProps) {
           {/* Diamond & Metal Section */}
           <div className="space-y-4">
             <h3 className="text-xs font-semibold text-slate-700 uppercase tracking-widest">Detalles del anillo</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="diamond_points" className="text-sm font-medium text-slate-900">
-                  Puntos diamante *
+                <Label htmlFor="main_diamond_points" className="text-sm font-medium text-slate-900">
+                  Diamante principal (puntos) *
                 </Label>
                 <Input
-                  id="diamond_points"
-                  name="diamond_points"
+                  id="main_diamond_points"
+                  name="main_diamond_points"
                   type="number"
                   step="0.01"
-                  defaultValue={ring?.diamond_points}
+                  defaultValue={ring?.main_diamond_points || ring?.diamond_points}
                   placeholder="13"
                   className="bg-slate-50 border border-slate-200 h-11 rounded-lg text-sm transition-colors hover:border-slate-300 focus:border-slate-400 focus:ring-0"
                   required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="side_diamond_points" className="text-sm font-medium text-slate-900">
+                  Diamantes laterales (puntos)
+                </Label>
+                <Input
+                  id="side_diamond_points"
+                  name="side_diamond_points"
+                  type="number"
+                  step="0.01"
+                  defaultValue={ring?.side_diamond_points || ""}
+                  placeholder="0"
+                  className="bg-slate-50 border border-slate-200 h-11 rounded-lg text-sm transition-colors hover:border-slate-300 focus:border-slate-400 focus:ring-0"
                 />
               </div>
 

@@ -87,13 +87,20 @@ export async function deleteRingImage(imageUrl: string) {
 export async function createRing(formData: FormData) {
   const supabase = await createClient()
 
+  const mainDiamondPoints = Number.parseFloat(formData.get("main_diamond_points") as string)
+  const sideDiamondPoints = formData.get("side_diamond_points")
+    ? Number.parseFloat(formData.get("side_diamond_points") as string)
+    : null
+
   const ring = {
     code: formData.get("code") as string,
     name: (formData.get("code") as string).toUpperCase(),
     price: Number.parseFloat(formData.get("price") as string),
     metal_type: "oro",
     metal_color: formData.get("metal_color") as string,
-    diamond_points: Number.parseFloat(formData.get("diamond_points") as string),
+    main_diamond_points: mainDiamondPoints,
+    side_diamond_points: sideDiamondPoints,
+    diamond_points: mainDiamondPoints, // Keep for backwards compatibility
     image_url: formData.get("image_url") as string,
     featured: false,
     is_active: formData.get("is_active") === "true",
@@ -116,13 +123,20 @@ export async function createRing(formData: FormData) {
 export async function updateRing(id: string, formData: FormData) {
   const supabase = await createClient()
 
+  const mainDiamondPoints = Number.parseFloat(formData.get("main_diamond_points") as string)
+  const sideDiamondPoints = formData.get("side_diamond_points")
+    ? Number.parseFloat(formData.get("side_diamond_points") as string)
+    : null
+
   const ring = {
     code: formData.get("code") as string,
     name: (formData.get("code") as string).toUpperCase(),
     price: Number.parseFloat(formData.get("price") as string),
     metal_type: "oro",
     metal_color: formData.get("metal_color") as string,
-    diamond_points: Number.parseFloat(formData.get("diamond_points") as string),
+    main_diamond_points: mainDiamondPoints,
+    side_diamond_points: sideDiamondPoints,
+    diamond_points: mainDiamondPoints, // Keep for backwards compatibility
     image_url: formData.get("image_url") as string,
     featured: false,
     is_active: formData.get("is_active") === "true",
